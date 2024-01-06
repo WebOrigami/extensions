@@ -1,0 +1,10 @@
+{
+  "name": "@weborigami/pagefind",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/treeIndex.js",
+  "dependencies": {
+    "@weborigami/origami": "0.0.38",
+    "pagefind": "1.0.4"
+  }
+}
