@@ -1,10 +1,10 @@
 import { keysFromPath, Tree } from "@weborigami/async-tree";
 import * as pagefind from "pagefind";
 
-export default async function treeIndexFiles(tree, basePath = "") {
+export default async function treeIndexFiles(treelike, basePath = "") {
   const { index } = await pagefind.createIndex();
 
-  await treeIndex(tree, { index, basePath });
+  await treeIndex(treelike, { index, basePath });
 
   const result = {};
   const { files } = await index.getFiles();
@@ -33,7 +33,8 @@ function addValueToObject(object, keys, value) {
   }
 }
 
-async function treeIndex(tree, options) {
+async function treeIndex(treelike, options) {
+  const tree = Tree.from(treelike);
   const { index, basePath } = options;
   for (const key of await tree.keys()) {
     const path = `${basePath}/${key}`;
