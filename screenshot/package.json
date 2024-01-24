@@ -1,0 +1,14 @@
+{
+  "name": "@weborigami/screenshot",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/screenshot.js",
+  "dependencies": {
+    "@weborigami/origami": "0.0.39",
+    "chrome-aws-lambda": "10.1.0",
+    "puppeteer": "21.9.0"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
