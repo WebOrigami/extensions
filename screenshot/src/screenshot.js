@@ -34,19 +34,28 @@ export default async function screenshot(input, options = {}) {
     width: pageWidth,
   });
 
-  // Get the height and width of the body.
+  // Get the height and width of the body including any margin.
   const { bodyHeight, bodyWidth } = await page.evaluate(() => {
-    return {
-      bodyHeight: document.body.offsetHeight,
-      bodyWidth: document.body.offsetWidth,
-    };
+    // Because we want to include margin, we need to get the computed style
+    // and convert the margins from a `px` string to a number.
+    const body = document.body;
+    const bodyStyle = window.getComputedStyle(body);
+    const marginTop = parseInt(bodyStyle.marginTop);
+    const marginBottom = parseInt(bodyStyle.marginBottom);
+    const marginLeft = parseInt(bodyStyle.marginLeft);
+    const marginRight = parseInt(bodyStyle.marginRight);
+
+    const bodyHeight = body.offsetHeight + marginTop + marginBottom;
+    const bodyWidth = body.offsetWidth + marginLeft + marginRight;
+
+    return { bodyHeight, bodyWidth };
   });
 
   // Take the screenshot.
   const buffer = await page.screenshot({
     clip: {
-      height: Math.max(bodyHeight, pageHeight),
-      width: Math.max(bodyWidth, pageWidth),
+      height: bodyHeight,
+      width: bodyWidth,
       x: 0,
       y: 0,
     },
