@@ -5,13 +5,13 @@
 import chromium from "chrome-aws-lambda";
 const puppeteer = chromium.puppeteer;
 
-import { replaceExtension } from "@weborigami/origami";
+import { replaceExtension, toString } from "@weborigami/origami";
 
 let browserPromise;
 let instanceCount = 0;
 
 export default async function screenshot(input, options = {}) {
-  const html = String(input);
+  const html = toString(input);
 
   // Try to share browser instances across multiple calls.
   instanceCount++;
