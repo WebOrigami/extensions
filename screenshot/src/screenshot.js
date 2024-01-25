@@ -5,14 +5,10 @@
 import chromium from "chrome-aws-lambda";
 const puppeteer = chromium.puppeteer;
 
-import { replaceExtension, toString } from "@weborigami/origami";
-
 let browserPromise;
 let instanceCount = 0;
 
-export default async function screenshot(input, options = {}) {
-  const html = toString(input);
-
+export default async function screenshot(preparePageFn, options = {}) {
   // Try to share browser instances across multiple calls.
   instanceCount++;
   if (!browserPromise) {
@@ -27,7 +23,10 @@ export default async function screenshot(input, options = {}) {
   const pageHeight = options.height || 768;
   const pageWidth = options.width || 1024;
   const deviceScaleFactor = options.deviceScaleFactor || 1;
-  await page.setContent(html);
+
+  // Do whatever's necessary to get the page ready for the screenshot.
+  await preparePageFn(page);
+
   await page.setViewport({
     deviceScaleFactor,
     height: pageHeight,
@@ -51,11 +50,14 @@ export default async function screenshot(input, options = {}) {
     return { bodyHeight, bodyWidth };
   });
 
+  const clipHeight = options.height ?? bodyHeight;
+  const clipWidth = options.width ?? bodyWidth;
+
   // Take the screenshot.
   const buffer = await page.screenshot({
     clip: {
-      height: bodyHeight,
-      width: bodyWidth,
+      height: clipHeight,
+      width: clipWidth,
       x: 0,
       y: 0,
     },
@@ -74,7 +76,3 @@ export default async function screenshot(input, options = {}) {
 
   return buffer;
 }
-
-screenshot.keyMap = (sourceKey) => replaceExtension(sourceKey, ".html", ".png");
-screenshot.inverseKeyMap = (resultKey) =>
-  replaceExtension(resultKey, ".png", ".html");
