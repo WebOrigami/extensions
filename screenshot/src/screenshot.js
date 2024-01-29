@@ -8,6 +8,19 @@ const puppeteer = chromium.puppeteer;
 let browserPromise;
 let instanceCount = 0;
 
+/**
+ * Take a screenshot via Puppeteer.
+ *
+ * The `preparePageFn` function will be called with a
+ * [Page](https://pptr.dev/api/puppeteer.page) object; the function can do
+ * whatever work is necessary to prepare the page for the screenshot.
+ *
+ * This returns the screenshot as an image buffer.
+ *
+ * @param {Function} preparePageFn
+ * @param {{ deviceScaleFactor: number, height: number, width: number }} options
+ * @returns {Uint8Array}
+ */
 export default async function screenshot(preparePageFn, options = {}) {
   // Try to share browser instances across multiple calls.
   instanceCount++;

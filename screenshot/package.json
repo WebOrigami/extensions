@@ -4,7 +4,6 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/origami": "0.0.39",
     "chrome-aws-lambda": "10.1.0",
     "puppeteer": "21.9.0"
   },
