@@ -2,9 +2,9 @@ This extension provides screenshot functions that can render a web page and retu
 
 The extension uses [Puppeteer](https://pptr.dev/), a headless Chrome browser, to render pages. The Puppeteer package is wonderful but quite heavy in size (~100MB).
 
-# Usage
+# Usage in Origami
 
-Install this package in your project:
+Install this package in your [Origami](https://weborigami.org) project:
 
 ```console
 $ npm install --save @weborigami/screenshot
