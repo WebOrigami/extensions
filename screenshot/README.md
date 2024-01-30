@@ -32,5 +32,3 @@ The `screenshot` functions accept an optional second `options` parameter in whic
 - `deviceScaleFactor`: the device scale factor: 1 (the default) for a classic 96 DPI display. Set this to 2 for HiDPI/Retina displays; this will double both the height and width of the resulting screenshot.
 - `height`: the height of the viewport in pixels.
 - `width`: the width of the viewport in pixels.
-
-in which you can specify a `height` and/or `width` in pixels. This determines the viewport size that will be used to render the page.
