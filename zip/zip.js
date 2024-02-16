@@ -8,35 +8,21 @@ import Zip from "adm-zip";
  */
 export default async function zip(treelike) {
   const tree = Tree.from(treelike);
-  const zip = new Zip();
+  // The ZIP file should leave the files in tree order.
+  const zip = new Zip({ noSort: true });
   await traversePaths(tree, (value, path) => {
-    // if (path.startsWith("src/")) {
-    //   zip.addFile("src/", Buffer.alloc(0));
-    // }
     if (value instanceof String) {
       value = String(value);
     }
-    if (typeof value === "string") {
-      value = Buffer.from(value, "utf8");
-    }
     zip.addFile(path, value);
-    // zip.addFile(path, buffer);
   });
-  // zip.addFile("sub/hello.txt", "Hello");
-  // zip.addFile("sub/goodbye.txt", "Goodbye");
-  // zip.addFile("ReadMe.md", "This is a ReadMe file.");
-
-  // for (const entry of zip.getEntries()) {
-  //   console.error(entry.entryName);
-  // }
-
   const buffer = zip.toBuffer();
   return buffer;
 }
 
 /**
  * Traverse the tree, invoking the given callback function for each
- * value. Pass the value, path, and tree to the callback function.
+ * value. Pass the value and path to the callback function.
  *
  * @param {import("@weborigami/types").AsyncTree} tree
  * @param {Function} fn
@@ -49,7 +35,7 @@ async function traversePaths(tree, fn, base = "") {
     if (Tree.isAsyncTree(value)) {
       await traversePaths(value, fn, path);
     } else {
-      await fn(value, path, tree);
+      await fn(value, path);
     }
   }
 }

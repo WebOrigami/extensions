@@ -6,7 +6,7 @@
   "dependencies": {
     "@weborigami/async-tree": "https://gitpkg.now.sh/WebOrigami/origami/async-tree?c13bba68",
     "@weborigami/language": "https://gitpkg.now.sh/WebOrigami/origami/language?c13bba68",
-    "adm-zip": "0.5.1"
+    "adm-zip": "0.5.10"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
