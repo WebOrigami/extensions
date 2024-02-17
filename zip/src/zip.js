@@ -1,4 +1,4 @@
-import { Tree } from "@weborigami/async-tree";
+import { DeepObjectTree, Tree, isPlainObject } from "@weborigami/async-tree";
 import Zip from "adm-zip";
 
 /**
@@ -7,7 +7,10 @@ import Zip from "adm-zip";
  * @param {import("@weborigami/async-tree").Treelike} treelike
  */
 export default async function zip(treelike) {
-  const tree = Tree.from(treelike);
+  // If the input is a plain object, we'll treat it as a deep object tree.
+  const tree = isPlainObject(treelike)
+    ? new DeepObjectTree(treelike)
+    : Tree.from(treelike);
   // The ZIP file should leave the files in tree order.
   const zip = new Zip({ noSort: true });
   await traversePaths(tree, (value, path) => {
