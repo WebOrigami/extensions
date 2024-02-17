@@ -1,0 +1,1 @@
+This [Origami](https://weborigami) package provides functions for packing any [treelike object](https://weborigami.org/async-tree/treelike) into a ZIP file, or unpacking a ZIP file in order to treat it as a tree.
