@@ -22,7 +22,7 @@ function mimetypeFirst(tree) {
     },
 
     async keys() {
-      const keys = await tree.keys();
+      const keys = [...(await tree.keys())];
       // Move `mimetype` (if present) to the front of the list.
       const index = keys.indexOf("mimetype");
       if (index >= 0) {

@@ -8,9 +8,10 @@ import Zip from "adm-zip";
  */
 export default async function zip(treelike) {
   // If the input is a plain object, we'll treat it as a deep object tree.
-  const tree = isPlainObject(treelike)
-    ? new DeepObjectTree(treelike)
-    : Tree.from(treelike);
+  const tree =
+    !Tree.isAsyncTree(treelike) && isPlainObject(treelike)
+      ? new DeepObjectTree(treelike)
+      : Tree.from(treelike);
   // The ZIP file should leave the files in tree order.
   const zip = new Zip({ noSort: true });
   await traversePaths(tree, (value, path) => {
