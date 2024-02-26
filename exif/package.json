@@ -1,0 +1,13 @@
+{
+  "name": "@weborigami/exif",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "main.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.0.42",
+    "exif-parser": "0.1.12"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
