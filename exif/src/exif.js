@@ -1,6 +1,6 @@
 import exifParser from "exif-parser";
 
-// Given a Buffer containing image data, return the EXIF metadata.
+// Given a Buffer containing image data, return the Exif metadata.
 export default async function exif(buffer) {
   const parser = exifParser.create(buffer);
   parser.enableTagNames(true);
