@@ -5,6 +5,9 @@ const googleExtensions = {
   "application/vnd.google-apps.spreadsheet": ".gsheet",
 };
 
+/**
+ * @implements {import("@weborigami/async-tree").AsyncTree}
+ */
 export default class GoogleDriveGraph {
   constructor(auth, folderId) {
     this.auth = auth;
