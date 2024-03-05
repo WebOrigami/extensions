@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.43",
+    "@weborigami/language": "0.0.43",
     "googleapis": "133.0.0"
   },
   "devDependencies": {
