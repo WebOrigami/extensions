@@ -4,12 +4,12 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "https://gitpkg.now.sh/WebOrigami/origami/async-tree?cd17a8d0",
-    "@weborigami/language": "https://gitpkg.now.sh/WebOrigami/origami/language?cd17a8d0",
+    "@weborigami/async-tree": "https://gitpkg.now.sh/WebOrigami/origami/async-tree?5c49b59e",
+    "@weborigami/language": "https://gitpkg.now.sh/WebOrigami/origami/language?5c49b59e",
     "googleapis": "133.0.0"
   },
   "devDependencies": {
-    "@weborigami/origami": "https://gitpkg.now.sh/WebOrigami/origami/origami?cd17a8d0"
+    "@weborigami/origami": "https://gitpkg.now.sh/WebOrigami/origami/origami?5c49b59e"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
