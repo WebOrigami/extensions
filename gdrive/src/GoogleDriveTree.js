@@ -1,7 +1,9 @@
 import { google } from "googleapis";
+import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
 
 const googleExtensions = {
+  "application/vnd.google-apps.document": ".gdoc",
   "application/vnd.google-apps.spreadsheet": ".gsheet",
 };
 
@@ -28,6 +30,7 @@ export default class GoogleDriveTree {
     }
 
     const googleFileTypes = {
+      "application/vnd.google-apps.document": gdoc,
       "application/vnd.google-apps.spreadsheet": gsheet,
       "application/vnd.google-apps.folder": (auth, id) =>
         new GoogleDriveTree(auth, id),

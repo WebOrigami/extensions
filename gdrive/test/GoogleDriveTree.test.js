@@ -11,7 +11,12 @@ const fixture = folderFn("1X3MWPXwwYXWarhNiCBIxCvGTyiBqISAF");
 describe("GoogleDriveTree", () => {
   test("can get keys", async () => {
     const keys = await fixture.keys();
-    assert.deepEqual(keys, ["images", "ReadMe.md", "Team.gsheet"]);
+    assert.deepEqual(keys, [
+      "images",
+      "ReadMe.md",
+      "Sample.gdoc",
+      "Team.gsheet",
+    ]);
   });
 
   test("can get a value", async () => {
