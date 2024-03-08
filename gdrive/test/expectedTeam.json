@@ -1,0 +1,26 @@
+[
+  [
+    "name",
+    "image",
+    "location",
+    "bio"
+  ],
+  [
+    "Alice",
+    "van.jpg",
+    "Honolulu",
+    "After working as a manager for numerous startups over the years, I decided to take the plunge and start a business of my own."
+  ],
+  [
+    "Bob",
+    "kingfisher.jpg",
+    "Los Angeles",
+    "Having been an art student for 11 years, I constantly explore various disciplines to incorporate artistic pursuits into product design studies."
+  ],
+  [
+    "Carol",
+    "venice.jpg",
+    "Venice",
+    "I open the line of communication between clients, customers, and businesses to get projects done."
+  ]
+]
