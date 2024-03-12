@@ -1,2 +1,3 @@
-node_modules
+build
 creds.json
+node_modules
