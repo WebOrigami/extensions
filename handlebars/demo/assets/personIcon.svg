@@ -1,0 +1,75 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  id="Layer_1"
+  data-name="Layer 1"
+  viewBox="0 0 120 120"
+>
+  <circle
+    cx="60"
+    cy="60"
+    r="45.94"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></circle>
+  <path
+    d="M87.24,95.69a27.67,27.67,0,1,0-55.33,0"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></path>
+  <circle
+    cx="59.57"
+    cy="48.2"
+    r="15.49"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></circle>
+  <circle
+    cx="60"
+    cy="60"
+    r="45.94"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></circle>
+  <path
+    d="M87.24,95.69a27.67,27.67,0,1,0-55.33,0"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></path>
+  <circle
+    cx="59.57"
+    cy="48.2"
+    r="15.49"
+    style="
+      fill: none;
+      stroke: #006be6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8px;
+    "
+  ></circle>
+</svg>

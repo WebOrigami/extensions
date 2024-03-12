@@ -1,0 +1,25 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>About Us</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <header>
+      <img class="icon" src="assets/personIcon.svg" />
+      <h1>About Us</h1>
+    </header>
+    <ul class="tileGrid">
+      {{#each this}}
+        <li class="tile">
+          <a href="team/{{name}}.html">
+            <img class="avatar" src="thumbnails/{{image}}" alt="{{name}}" />
+            <h2 class="name">{{name}}</h2>
+            <div class="location">{{location}}</div>
+          </a>
+        </li>
+      {{/each}}
+    </ul>
+  </body>
+</html>
