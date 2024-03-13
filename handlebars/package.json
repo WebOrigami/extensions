@@ -5,7 +5,6 @@
   "main": "main.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.45",
-    "@weborigami/language": "0.0.45",
     "@weborigami/origami": "0.0.45",
     "handlebars": "4.7.8"
   },
