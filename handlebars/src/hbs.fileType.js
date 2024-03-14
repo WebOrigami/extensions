@@ -1,5 +1,4 @@
-import { Tree } from "@weborigami/async-tree";
-import * as utilities from "@weborigami/origami";
+import { toJsonValue, toString } from "@weborigami/origami";
 import Handlebars from "handlebars";
 
 /**
@@ -10,11 +9,11 @@ import Handlebars from "handlebars";
 export default {
   /** @type {import("@weborigami/language").FileUnpackFunction} */
   async unpack(input, options = {}) {
-    const text = utilities.toString(input);
+    const text = toString(input);
     const templateFn = Handlebars.compile(text);
-    const fn = async (treelike) => {
-      const plain = await Tree.plain(treelike);
-      return templateFn(plain);
+    const fn = async (input) => {
+      const data = input ? await toJsonValue(input) : null;
+      return templateFn(data);
     };
     return fn;
   },
