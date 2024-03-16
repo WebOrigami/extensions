@@ -1,4 +1,4 @@
-import { toJsonValue, toString } from "@weborigami/origami";
+import { toString, toValue } from "@weborigami/origami";
 import Handlebars from "handlebars";
 
 /**
@@ -12,7 +12,7 @@ export default {
     const text = toString(input);
     const templateFn = Handlebars.compile(text);
     const fn = async (input) => {
-      const data = input ? await toJsonValue(input) : null;
+      const data = input ? await toValue(input) : null;
       return templateFn(data);
     };
     return fn;
