@@ -1,0 +1,4 @@
+{
+  greet = src/greet.js
+  hbs_handler = src/hbs_handler.js
+}
