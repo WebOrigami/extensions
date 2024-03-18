@@ -3,11 +3,10 @@
 {
   index.html = index.hbs(teamData.yaml)
   team = @map(teamData.yaml, {
-    keyMap: (person) => `${person/name}.html`
-    valueMap: person.hbs
+    key: (person) => `${person/name}.html`
+    value: person.hbs
   })
   assets
   images
   thumbnails = @map(images, @image/resize({ width: 200 }))
-  test.html = message
 }
