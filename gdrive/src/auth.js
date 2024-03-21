@@ -1,5 +1,5 @@
 import { Tree } from "@weborigami/async-tree";
-import { FileLoadersTransform, Scope } from "@weborigami/language";
+import { OrigamiTransform, Scope } from "@weborigami/language";
 import * as googleApis from "googleapis";
 import GoogleDriveTree from "./GoogleDriveTree.js";
 
@@ -13,7 +13,7 @@ export default async function auth(credentialsTreelike) {
   const auth = new googleApis.google.auth.GoogleAuth({ credentials, scopes });
   const scope = this;
   return (folderId) => {
-    let tree = new (FileLoadersTransform(GoogleDriveTree))(auth, folderId);
+    let tree = new (OrigamiTransform(GoogleDriveTree))(auth, folderId);
     tree = Scope.treeWithScope(tree, scope);
     return tree;
   };
