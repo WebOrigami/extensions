@@ -1,10 +1,3 @@
-// import puppeteer from "puppeteer"; Instead of importing puppeteer directly,
-// to support "serverless" environments like Netlify we need to use Puppeteer
-// with a package like @sparticuz/chromium. See
-// https://dev.to/ambujsahu81/deploy-a-puppeteer-nodejs-application-on-netlify-3b3
-// import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer";
-
 let browserPromise;
 let instanceCount = 0;
 
@@ -24,11 +17,7 @@ let instanceCount = 0;
 export default async function screenshot(preparePageFn, options = {}) {
   // Try to share browser instances across multiple calls.
   instanceCount++;
-  if (!browserPromise) {
-    browserPromise = puppeteer.launch({
-      headless: "new",
-    });
-  }
+  browserPromise ??= launchBrowser();
   const browser = await browserPromise;
 
   // Create the page for the screenshot.
@@ -88,4 +77,29 @@ export default async function screenshot(preparePageFn, options = {}) {
   }
 
   return buffer;
+}
+
+async function launchBrowser() {
+  if (process.env.NODE_ENV === "production") {
+    // Production environment. To support cloud environments like Netlify we
+    // need to use Puppeteer via @sparticuz/chromium. See
+    // https://dev.to/ambujsahu81/deploy-a-puppeteer-nodejs-application-on-netlify-3b3
+    const chromium = await import("@sparticuz/chromium");
+    chromium.setHeadlessMode = true;
+    chromium.setGraphicsMode = false;
+
+    const puppeteer = await import("puppeteer-core");
+    return puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  } else {
+    // Local
+    const puppeteer = await import("puppeteer");
+    return puppeteer.launch({
+      headless: "new",
+    });
+  }
 }
