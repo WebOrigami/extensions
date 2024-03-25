@@ -1,3 +1,5 @@
+import process from "node:process";
+
 let browserPromise;
 let instanceCount = 0;
 
