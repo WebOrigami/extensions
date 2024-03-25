@@ -1,9 +1,9 @@
-// import puppeteer from "puppeteer";
-// Instead of importing puppeteer directly, it seems that for Netlify we need to
-// use Puppeteer via chrome-aws-lambda. See
-// https://levelup.gitconnected.com/using-puppeteer-on-netlify-e2d3801893c2
-import chromium from "chrome-aws-lambda";
-const puppeteer = chromium.puppeteer;
+// import puppeteer from "puppeteer"; Instead of importing puppeteer directly,
+// to support "serverless" environments like Netlify we need to use Puppeteer
+// with a package like @sparticuz/chromium. See
+// https://dev.to/ambujsahu81/deploy-a-puppeteer-nodejs-application-on-netlify-3b3
+// import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
 
 let browserPromise;
 let instanceCount = 0;
@@ -48,8 +48,8 @@ export default async function screenshot(preparePageFn, options = {}) {
 
   // Get the height and width of the body including any margin.
   const { bodyHeight, bodyWidth } = await page.evaluate(() => {
-    // Because we want to include margin, we need to get the computed style
-    // and convert the margins from a `px` string to a number.
+    // Because we want to include margin, we need to get the computed style and
+    // convert the margins from a `px` string to a number.
     const body = document.body;
     const bodyStyle = window.getComputedStyle(body);
     const marginTop = parseInt(bodyStyle.marginTop);

@@ -4,8 +4,7 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "chrome-aws-lambda": "10.1.0",
-    "puppeteer": "21.9.0"
+    "puppeteer": "22.6.0"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
