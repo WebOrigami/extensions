@@ -1,3 +1,2 @@
-export { default as epub } from "./src/epub.js";
-export { default as unzip } from "./src/unzip.js";
-export { default as zip } from "./src/zip.js";
+export { default as epub_handler } from "./src/epub_handler.js";
+export { default as zip_handler } from "./src/zip_handler.js";
