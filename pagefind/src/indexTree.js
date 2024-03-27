@@ -1,0 +1,70 @@
+import { keysFromPath, Tree } from "@weborigami/async-tree";
+import * as pagefind from "pagefind";
+
+/**
+ * Given a tree of HTML content, index that content with Pagefind and return a
+ * new tree containing the index files.
+ *
+ * @typedef {import("@weborigami/async-tree").Treelike} Treelike
+ * @param {Treelike} treelike
+ * @param {string} [basePath]
+ * @returns {Treelike}
+ */
+export default async function indexTree(treelike, basePath = "") {
+  const { index } = await pagefind.createIndex();
+
+  // Add everything in the input tree to the index.
+  await addTreeToIndex(treelike, { index, basePath });
+
+  // Return the index files as a plain object.
+  return indexToObject(index);
+}
+
+// Add a single value to a nested object based on an array of keys.
+function addValueToObject(object, keys, value) {
+  for (let i = 0, current = object; i < keys.length; i++) {
+    const key = keys[i];
+    if (i === keys.length - 1) {
+      // Write out value
+      current[key] = value;
+    } else {
+      // Traverse further
+      if (!current[key]) {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+  }
+}
+
+// Add the complete HTML content in a tree to a Pagefind index.
+async function addTreeToIndex(treelike, options) {
+  const tree = Tree.from(treelike);
+  const { index, basePath } = options;
+  for (const key of await tree.keys()) {
+    const path = `${basePath}/${key}`;
+    const value = await tree.get(key);
+    if (Tree.isAsyncTree(value)) {
+      await addTreeToIndex(value, { index, basePath: path });
+      continue;
+    } else if (!key.endsWith(".html")) {
+      continue;
+    }
+    await index.addHTMLFile({
+      url: path,
+      content: String(value),
+    });
+  }
+}
+
+// Return the complete set of index files as a plain object.
+async function indexToObject(index) {
+  const result = {};
+  const { files } = await index.getFiles();
+  for (const file in files) {
+    const { path, content } = files[file];
+    const keys = keysFromPath(path);
+    addValueToObject(result, keys, content);
+  }
+  return result;
+}
