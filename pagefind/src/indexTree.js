@@ -1,6 +1,9 @@
 import { keysFromPath, Tree } from "@weborigami/async-tree";
 import * as pagefind from "pagefind";
 
+const textDecoder = new TextDecoder();
+const TypedArray = Object.getPrototypeOf(Uint8Array);
+
 /**
  * Given a tree of HTML content, index that content with Pagefind and return a
  * new tree containing the index files.
@@ -44,16 +47,21 @@ async function addTreeToIndex(treelike, options) {
   for (const key of await tree.keys()) {
     const path = `${basePath}/${key}`;
     const value = await tree.get(key);
-    if (Tree.isAsyncTree(value)) {
+    if (Tree.isTreelike(value)) {
       await addTreeToIndex(value, { index, basePath: path });
       continue;
     } else if (!key.endsWith(".html")) {
       continue;
     }
-    await index.addHTMLFile({
+    const result = await index.addHTMLFile({
       url: path,
-      content: String(value),
+      content: toString(value),
     });
+    if (result.errors?.length > 0) {
+      console.error(
+        `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
+      );
+    }
   }
 }
 
@@ -67,4 +75,14 @@ async function indexToObject(index) {
     addValueToObject(result, keys, content);
   }
   return result;
+}
+
+// Cast a possible ArrayBuffer, Buffer, or other TypedArray to a string.
+function toString(value) {
+  if (value instanceof ArrayBuffer || value instanceof TypedArray) {
+    // Treat the buffer as UTF-8 text.
+    return textDecoder.decode(value);
+  } else {
+    return String(value);
+  }
 }
