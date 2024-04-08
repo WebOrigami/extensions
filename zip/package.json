@@ -1,11 +1,11 @@
 {
   "name": "@weborigami/zip",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.42",
-    "@weborigami/language": "0.0.42",
+    "@weborigami/async-tree": "0.0.47",
+    "@weborigami/language": "0.0.47",
     "adm-zip": "0.5.10"
   },
   "scripts": {
