@@ -1,3 +1,4 @@
 {
+  epub_handler = src/epub_handler.js/
   zip_handler = src/zip_handler.js/
 }
