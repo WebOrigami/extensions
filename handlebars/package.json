@@ -4,7 +4,7 @@
   "type": "module",
   "main": "src/hbs_handler.js",
   "dependencies": {
-    "@weborigami/async-tree": "https://gitpkg.now.sh/WebOrigami/origami/origami?2bfaf452",
+    "@weborigami/async-tree": "https://gitpkg.now.sh/WebOrigami/origami/async-tree?2bfaf452",
     "@weborigami/origami": "https://gitpkg.now.sh/WebOrigami/origami/origami?2bfaf452",
     "handlebars": "4.7.8"
   },
