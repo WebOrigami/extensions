@@ -1,6 +1,6 @@
-This package defines a loader for [Handlebars](https://handlebarsjs.com) templates that can be used in [Origami](https://weborigami.org) programs.
+This package defines a handler for [Handlebars](https://handlebarsjs.com) templates that can be used in [Origami](https://weborigami.org) programs.
 
-This is intended to be useful to Handlebars users, and also as a reference implementation of writing a loader for a new file type in Origami.
+This is intended to be useful to Handlebars users, and also as a reference implementation of writing a handler for a new file type in Origami.
 
 ## Installation
 
@@ -176,9 +176,9 @@ Hello, <b>Carol</b>!
 
 You can reference Handlebars templates in Origami site definitions.
 
-The `demos/aboutUs` folder contains the complete source for a simple About Us site. This is a variation of the sample About Us site developed in the Web Origami [tutorial](https://weborigami.org/language/tutorial), which uses Origami templates.
+The `demos/aboutUs` folder contains the complete source for a simple About Us site. This is a variation of the sample About Us site developed in the Web Origami [tutorial](https://weborigami.org/language/tutorial); see the tutorial for an explanation of how the site works.
 
-In `demos/aboutUs` here, those Origami templates from the tutorial example are replaced with equivalent Handlebars templates. The `index.hbs` template defines a team home page, and the `person.hbs` template defines a page for an individual team member.
+In the Handlebars variation here, the tutorial's Origami templates are rewritten as equivalent Handlebars templates: the `index.hbs` template defines a team home page, and the `person.hbs` template defines a page for an individual team member.
 
 Those templates are invoked by the top-level `site.ori` Origami program that defines the structure of the site.
 
@@ -198,3 +198,13 @@ Those templates are invoked by the top-level `site.ori` Origami program that def
 ```
 
 The formula for `index.html` indicates that the `index.hbs` template should be applied to the data about team members in `teamData.yaml`. The formula for the `team` area indicates that Origami should generate a page for each team member using the `person.hbs` template.
+
+You can run this site from the `demos/aboutUs` folder:
+
+```console
+$ ori @serve site.ori
+```
+
+## Larger example
+
+The [Aventour Expeditions](https://github.com/WebOrigami/aventour-expeditions) sample site uses Handlebars to create a site for an adventure trekking company.
