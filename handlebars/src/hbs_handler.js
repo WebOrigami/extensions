@@ -22,6 +22,35 @@ export default {
   },
 };
 
+/**
+ * Returns the names of all the partials referenced in a Handlebars template.
+ *
+ * @param {string} template
+ */
+function findPartialReferences(template) {
+  // Partials:
+  // start with "{{>" or "{{#>"
+  // then have optional whitespace
+  // then start with a character that's not a "@" (like the special @partial-block)
+  // then continue with any number of characters that aren't whitespace or a "}"
+  // and aren't a reference to `partial-block`
+  const regex = /{{#?>\s*(?<name>[^@\s][^\s}]+)/g;
+  const matches = [...template.matchAll(regex)];
+  const names = matches.map((match) => match.groups.name);
+  const unique = [...new Set(names)];
+  return unique;
+}
+
+/**
+ * The most complex part of supporting Handlebars templates is handling
+ * [partials](https://handlebarsjs.com/guide/partials.html): Handlebars
+ * templates that can be reused inside other templates.
+ *
+ * This function finds the names of the partials used in a template, and then
+ * looks in the Origami scope for the definition of those partials. If it finds
+ * a reference to a partial called `foo`, it expects to find a definition for
+ * that partial in a file called `foo.hbs`.
+ */
 async function getPartials(scope, template, partials = {}) {
   // Find the names of the partials used in the template.
   const partialReferences = findPartialReferences(template);
@@ -69,18 +98,4 @@ async function getPartials(scope, template, partials = {}) {
     );
   }
   return partials;
-}
-
-function findPartialReferences(template) {
-  // Partials:
-  // start with "{{>" or "{{#>"
-  // then have optional whitespace
-  // then start with a character that's not a "@" (like the special @partial-block)
-  // then continue with any number of characters that aren't whitespace or a "}"
-  // and aren't a reference to `partial-block`
-  const regex = /{{#?>\s*(?<name>[^@\s][^\s}]+)/g;
-  const matches = [...template.matchAll(regex)];
-  const names = matches.map((match) => match.groups.name);
-  const unique = [...new Set(names)];
-  return unique;
 }
