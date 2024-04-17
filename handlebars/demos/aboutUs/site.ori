@@ -1,5 +1,5 @@
-// This file defines the site structure, using Handlebars templates to generate
-// the index page and team member pages.
+// This Origami file defines the site structure, using Handlebars templates to
+// generate the index page and team member pages.
 {
   index.html = index.hbs(teamData.yaml)
   team = @map(teamData.yaml, {
