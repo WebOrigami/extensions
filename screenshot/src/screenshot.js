@@ -1,4 +1,4 @@
-import process from "node:process";
+import puppeteer from "puppeteer";
 
 let browserPromise;
 let instanceCount = 0;
@@ -82,26 +82,7 @@ export default async function screenshot(preparePageFn, options = {}) {
 }
 
 async function launchBrowser() {
-  if (process.env.NODE_ENV === "production") {
-    // Production environment. To support cloud environments like Netlify we
-    // need to use Puppeteer via @sparticuz/chromium. See
-    // https://dev.to/ambujsahu81/deploy-a-puppeteer-nodejs-application-on-netlify-3b3
-    const chromium = await import("@sparticuz/chromium");
-    chromium.setHeadlessMode = true;
-    chromium.setGraphicsMode = false;
-
-    const puppeteer = await import("puppeteer-core");
-    return puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
-  } else {
-    // Local
-    const puppeteer = await import("puppeteer");
-    return puppeteer.launch({
-      headless: "new",
-    });
-  }
+  return puppeteer.launch({
+    headless: "new",
+  });
 }
