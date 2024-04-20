@@ -1,0 +1,3 @@
+{
+  parseICal = src/parseICal.js
+}

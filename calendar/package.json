@@ -1,0 +1,9 @@
+{
+  "name": "@weborigami/calendar",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "@weborigami/origami": "0.0.48",
+    "ical.js": "2.0.1"
+  }
+}
