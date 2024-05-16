@@ -19,8 +19,8 @@ export default class GoogleDriveTree {
   }
 
   async get(key) {
-    if (key === "") {
-      return this;
+    if (!key) {
+      return undefined;
     }
 
     const items = await this.getItems();
