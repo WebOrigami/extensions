@@ -1,0 +1,15 @@
+{
+  "name": "@weborigami/webdav",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "main.js",
+  "dependencies": {
+    "@nephele/adapter-virtual": "1.0.0-alpha.41",
+    "@nephele/authenticator-none": "1.0.0-alpha.41",
+    "nephele": "1.0.0-alpha.41",
+    "express": "4.19.2"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
