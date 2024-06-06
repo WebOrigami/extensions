@@ -4,12 +4,12 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.50",
-    "@weborigami/language": "0.0.50",
-    "googleapis": "137.1.0"
+    "@weborigami/async-tree": "0.0.54",
+    "@weborigami/language": "0.0.54",
+    "googleapis": "139.0.0"
   },
   "devDependencies": {
-    "@weborigami/origami": "0.0.50"
+    "@weborigami/origami": "0.0.54"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"

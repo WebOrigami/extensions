@@ -1,5 +1,3 @@
-import dropboxFetch from "./dropboxFetch.js";
-
 /**
  * A Dropbox folder as an AsyncTree.
  */
@@ -31,15 +29,17 @@ export default class DropboxTree {
 
     const path = item.path_display;
     if (item.tag === "folder") {
+      // Return a subtree for the indicated folder.
       const subtree = Reflect.construct(this.constructor, [
         this.accessToken,
         path,
       ]);
-      subtree.parent = this;
+      // Subtree gets the same scope as this tree. See notes in auth.js.
+      subtree.scope = this.scope;
       return subtree;
     }
 
-    // Get the indicated file.
+    // Return a buffer for the indicated file from the Dropbox content API.
     const headers = new Headers({
       Authorization: `Bearer ${this.accessToken}`,
       "Dropbox-API-Arg": JSON.stringify({ path }),
@@ -51,11 +51,12 @@ export default class DropboxTree {
         headers,
       }
     );
+
     return response.arrayBuffer();
   }
 
   async getItems() {
-    this.itemsPromise ??= getItemsInternal(this.accessToken, this.path);
+    this.itemsPromise ??= getFolderItems(this.accessToken, this.path);
     return this.itemsPromise;
   }
 
@@ -72,46 +73,56 @@ export default class DropboxTree {
   }
 }
 
-async function getItemsInternal(accessToken, path) {
+// Get items in a folder via the Dropbox API.
+async function getFolderItems(accessToken, path) {
   let items = {};
   let hasMore = true;
   let cursor = null;
 
-  try {
-    while (hasMore) {
-      let response;
-      if (cursor) {
-        response = await dropboxFetch(
-          accessToken,
-          "/files/list_folder/continue",
-          {
-            cursor,
-          }
-        );
-      } else {
-        response = await dropboxFetch(accessToken, "/files/list_folder", {
-          path,
-        });
-      }
-
-      // Add the entries in the response to the items.
-      for (const entry of response.entries) {
-        const tag = entry[".tag"];
-        const { name, path_display } = entry;
-        if (entry[".tag"] === "deleted") {
-          continue;
-        }
-        items[name] = {
-          tag,
-          path_display,
-        };
-      }
-
-      hasMore = response.has_more;
-      cursor = response.cursor;
+  while (hasMore) {
+    let url;
+    let body;
+    if (cursor) {
+      url = "https://api.dropboxapi.com/2/files/list_folder/continue";
+      body = { cursor };
+    } else {
+      url = "https://api.dropboxapi.com/2/files/list_folder";
+      body = { path };
     }
-  } catch (error) {
-    console.error("Error listing folder:", error);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `Dropbox API error: ${response.status}: ${response.statusText} - ${text}`
+      );
+    }
+
+    const json = await response.json();
+
+    // Add the entries in the response to the items.
+    for (const entry of json.entries) {
+      const tag = entry[".tag"];
+      const { name, path_display } = entry;
+      if (entry[".tag"] === "deleted") {
+        continue;
+      }
+      items[name] = {
+        tag,
+        path_display,
+      };
+    }
+
+    hasMore = json.has_more;
+    cursor = json.cursor;
   }
 
   return items;

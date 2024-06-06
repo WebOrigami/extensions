@@ -33,7 +33,7 @@ export default class GoogleDriveTree {
       "application/vnd.google-apps.document": gdoc,
       "application/vnd.google-apps.spreadsheet": gsheet,
       "application/vnd.google-apps.folder": (auth, id) =>
-        new GoogleDriveTree(auth, id),
+        Reflect.construct(this.constructor, [auth, id]),
     };
     const loader = googleFileTypes[item.mimeType] || getGoogleDriveFile;
     const value = await loader(this.auth, item.id);
@@ -63,6 +63,12 @@ export default class GoogleDriveTree {
     });
 
     return this.itemsPromise;
+  }
+
+  async isKeyForSubtree(key) {
+    const items = await this.getItems();
+    const item = items[key];
+    return item?.mimeType === "application/vnd.google-apps.folder";
   }
 
   async keys() {
