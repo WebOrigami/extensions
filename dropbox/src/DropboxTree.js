@@ -99,6 +99,16 @@ async function getFolderItems(accessToken, path) {
       body: JSON.stringify(body),
     });
 
+    // TODO: How do we test this?
+    if (!response.status === 429) {
+      // Rate limit error; wait and try again.
+      const retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
+      const sleep = new Promise((resolve) =>
+        setTimeout(resolve, retryAfterSeconds * 1000)
+      );
+      return sleep.then(() => getFolderItems(accessToken, path));
+    }
+
     if (!response.ok) {
       const text = await response.text();
       throw new Error(
