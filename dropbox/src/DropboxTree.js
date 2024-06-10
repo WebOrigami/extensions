@@ -99,7 +99,6 @@ async function getFolderItems(accessToken, path) {
       body: JSON.stringify(body),
     });
 
-    // TODO: How do we test this?
     if (!response.status === 429) {
       // Rate limit error; wait and try again.
       const retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
