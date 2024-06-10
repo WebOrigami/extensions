@@ -1,14 +1,14 @@
 {
   "name": "@weborigami/dropbox",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.54",
-    "@weborigami/language": "0.0.54"
+    "@weborigami/async-tree": "0.0.56",
+    "@weborigami/language": "0.0.56"
   },
   "devDependencies": {
-    "@weborigami/origami": "0.0.54"
+    "@weborigami/origami": "0.0.56"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
