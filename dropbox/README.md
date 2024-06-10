@@ -52,5 +52,5 @@ curl https://api.dropbox.com/oauth2/token \
 }
 ```
 
-14. Copy that string of letters and numbers for the `refresh_token` value and paste it into the `creds.json` file.
-15. Add the `creds.json` file to `.gitignore`. _It's very important that you don't check this file into source control!_
+14. Copy the `refresh_token` value from that result and paste it into `refresh_token` field in the `creds.json` file.
+15. Add the `creds.json` file to `.gitignore`. _Don't check credential files into source control!_

@@ -7,7 +7,7 @@ export default class DropboxTree {
     if (path === undefined || path === "/") {
       // Dropbox wants the root path as the empty string.
       path = "";
-    } else if (!path?.startsWith("/")) {
+    } else if (path !== "" && !path?.startsWith("/")) {
       // Dropbox wants all other paths to start with a slash.
       path = `/${path}`;
     }
