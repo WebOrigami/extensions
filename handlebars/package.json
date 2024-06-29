@@ -4,8 +4,8 @@
   "type": "module",
   "main": "src/hbs_handler.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.48",
-    "@weborigami/origami": "0.0.48",
+    "@weborigami/async-tree": "0.0.58",
+    "@weborigami/language": "0.0.58",
     "handlebars": "4.7.8"
   },
   "scripts": {

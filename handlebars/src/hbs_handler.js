@@ -1,5 +1,5 @@
+import { toPlainValue, toString } from "@weborigami/async-tree";
 import { Scope } from "@weborigami/language";
-import { toString, toValue } from "@weborigami/origami";
 import Handlebars from "handlebars";
 
 /**
@@ -15,7 +15,7 @@ export default {
     const partials = await getPartials(scope, template);
     const templateFn = Handlebars.compile(template);
     const fn = async (input) => {
-      const data = input ? await toValue(input) : null;
+      const data = input ? await toPlainValue(input) : null;
       return templateFn(data, { partials });
     };
     return fn;
