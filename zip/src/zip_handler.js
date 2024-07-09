@@ -5,7 +5,7 @@ import {
   isPlainObject,
   keysFromPath,
 } from "@weborigami/async-tree";
-import { OrigamiTransform, Scope } from "@weborigami/language";
+import { OrigamiTransform } from "@weborigami/language";
 import Zip from "adm-zip";
 
 /**
@@ -40,7 +40,7 @@ export default {
   /**
    * Unpack a ZIP file
    */
-  async unpack(buffer) {
+  async unpack(buffer, options) {
     const zip = new Zip(buffer);
 
     const files = new Map();
@@ -54,11 +54,8 @@ export default {
     }
 
     // Convert deep map structure to async tree.
-    let tree = new (OrigamiTransform(DeepMapTree))(files);
-    if (this) {
-      tree = Scope.treeWithScope(tree, this);
-    }
-
+    const tree = new (OrigamiTransform(DeepMapTree))(files);
+    tree.parent = options?.parent;
     return tree;
   },
 };

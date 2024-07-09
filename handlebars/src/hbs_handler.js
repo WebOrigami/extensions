@@ -1,5 +1,4 @@
-import { toPlainValue, toString } from "@weborigami/async-tree";
-import { Scope } from "@weborigami/language";
+import { scope, toPlainValue, toString } from "@weborigami/async-tree";
 import Handlebars from "handlebars";
 
 /**
@@ -11,8 +10,13 @@ export default {
   /** @type {import("@weborigami/language").UnpackFunction} */
   async unpack(packed, options = {}) {
     const template = toString(packed);
-    const scope = Scope.getScope(options.parent);
-    const partials = await getPartials(scope, template);
+    let partials;
+    if (options.parent) {
+      const templateScope = scope(options.parent);
+      partials = await getPartials(templateScope, template);
+    } else {
+      partials = [];
+    }
     const templateFn = Handlebars.compile(template);
     const fn = async (input) => {
       const data = input ? await toPlainValue(input) : null;

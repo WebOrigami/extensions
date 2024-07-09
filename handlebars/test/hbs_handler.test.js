@@ -1,5 +1,4 @@
 import { ObjectTree } from "@weborigami/async-tree";
-import { Scope } from "@weborigami/language";
 import assert from "node:assert";
 import { describe, test } from "node:test";
 import hbsHandler from "../src/hbs_handler.js";
@@ -14,12 +13,9 @@ describe("Handlebars hbs extension handler", () => {
   });
 
   test("uses parent scope to resolve partials", async () => {
-    const parent = Scope.treeWithScope(
-      {},
-      {
-        ["bold.hbs"]: `<strong>{{this}}</strong>`,
-      }
-    );
+    const parent = new ObjectTree({
+      ["bold.hbs"]: `<strong>{{this}}</strong>`,
+    });
     const template = `Hello, {{#> bold}}{{ name }}{{/bold}}!`;
     const fn = await hbsHandler.unpack(template, { parent });
     const result = await fn("world");
