@@ -1,3 +1,5 @@
+import fetchWithBackoff from "./fetchWithBackoff.js";
+
 /**
  * A Dropbox folder as an AsyncTree.
  */
@@ -43,7 +45,7 @@ export default class DropboxTree {
       Authorization: `Bearer ${this.accessToken}`,
       "Dropbox-API-Arg": JSON.stringify({ path }),
     });
-    const response = await fetch(
+    const response = await fetchWithBackoff(
       "https://content.dropboxapi.com/2/files/download",
       {
         method: "POST",
@@ -89,7 +91,7 @@ async function getFolderItems(accessToken, path) {
       body = { path };
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithBackoff(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -97,15 +99,6 @@ async function getFolderItems(accessToken, path) {
       },
       body: JSON.stringify(body),
     });
-
-    if (!response.status === 429) {
-      // Rate limit error; wait and try again.
-      const retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
-      const sleep = new Promise((resolve) =>
-        setTimeout(resolve, retryAfterSeconds * 1000)
-      );
-      return sleep.then(() => getFolderItems(accessToken, path));
-    }
 
     if (!response.ok) {
       const text = await response.text();
