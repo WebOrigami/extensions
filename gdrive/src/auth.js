@@ -21,7 +21,7 @@ export default async function auth(credentialsTreelike) {
       auth,
       folderId
     );
-    this.parent = parent;
+    tree.parent = parent;
     return tree;
   };
 }
