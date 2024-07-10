@@ -28,9 +28,7 @@ export default async function auth(credentialsTreelike, path) {
   let tree = treeMap[accessToken]?.[path];
   if (!tree) {
     tree = new (HandleExtensionsTransform(DropboxTree))(accessToken, path);
-    // Because of latency, we don't want to include Dropbox trees in scope.
-    // We give the tree the same scope as the calling scope.
-    tree.scope = this;
+    tree.parent = this;
     treeMap[accessToken] ??= {};
     treeMap[accessToken][path] = tree;
   }

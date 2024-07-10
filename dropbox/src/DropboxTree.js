@@ -34,8 +34,7 @@ export default class DropboxTree {
         this.accessToken,
         path,
       ]);
-      // Subtree gets the same scope as this tree. See notes in auth.js.
-      subtree.scope = this.scope;
+      subtree.parent = this;
       return subtree;
     }
 
