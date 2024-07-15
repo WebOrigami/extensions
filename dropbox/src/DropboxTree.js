@@ -52,6 +52,11 @@ export default class DropboxTree {
         headers,
       }
     );
+    if (!response.ok) {
+      throw new Error(
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
+      );
+    }
 
     return response.arrayBuffer();
   }
@@ -101,9 +106,8 @@ async function getFolderItems(accessToken, path) {
     });
 
     if (!response.ok) {
-      const text = await response.text();
       throw new Error(
-        `Dropbox API error: ${response.status}: ${response.statusText} - ${text}`
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
       );
     }
 
