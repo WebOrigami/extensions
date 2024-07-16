@@ -75,7 +75,11 @@ export default class DropboxTree {
   // Get the contents of this folder.
   async keys() {
     const items = await this.getItems();
-    return Object.keys(items);
+    const keys = Object.keys(items);
+    // Dropbox seems to return keys in an almost-but-not-quite sorted order.
+    // We sort them here to make the order deterministic.
+    keys.sort();
+    return keys;
   }
 }
 
