@@ -5,7 +5,7 @@ import {
   isPlainObject,
   keysFromPath,
 } from "@weborigami/async-tree";
-import { OrigamiTransform } from "@weborigami/language";
+import { HandleExtensionsTransform } from "@weborigami/language";
 import Zip from "adm-zip";
 
 /**
@@ -54,7 +54,7 @@ export default {
     }
 
     // Convert deep map structure to async tree.
-    const tree = new (OrigamiTransform(DeepMapTree))(files);
+    const tree = new (HandleExtensionsTransform(DeepMapTree))(files);
     tree.parent = options?.parent;
     return tree;
   },
