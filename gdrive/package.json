@@ -1,15 +1,15 @@
 {
   "name": "@weborigami/gdrive",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.60",
-    "@weborigami/language": "0.0.60",
+    "@weborigami/async-tree": "0.0.61",
+    "@weborigami/language": "0.0.61",
     "googleapis": "140.0.1"
   },
   "devDependencies": {
-    "@weborigami/origami": "0.0.60"
+    "@weborigami/origami": "0.0.61"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
