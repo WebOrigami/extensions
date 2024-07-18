@@ -1,3 +1,4 @@
+import { naturalOrder } from "@weborigami/async-tree";
 import fetchWithBackoff from "./fetchWithBackoff.js";
 
 /**
@@ -76,9 +77,10 @@ export default class DropboxTree {
   async keys() {
     const items = await this.getItems();
     const keys = Object.keys(items);
-    // Dropbox seems to return keys in an almost-but-not-quite sorted order.
-    // We sort them here to make the order deterministic.
-    keys.sort();
+    // Dropbox seems to return keys in an almost-but-not-quite sorted order. In
+    // any event, Origami tree drivers generally use natural sort order. For
+    // reference, Dropbox's own UI uses what seems to be natural sort order.
+    keys.sort(naturalOrder);
     return keys;
   }
 }

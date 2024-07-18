@@ -11,7 +11,7 @@ const fixture = await auth(creds, "Test");
 describe("DropboxTree", () => {
   test("can get keys", async () => {
     const keys = await fixture.keys();
-    assert.deepEqual(keys, ["ReadMe.md", "images"]);
+    assert.deepEqual(keys, ["images", "ReadMe.md"]);
   });
 
   test("can get a value", async () => {

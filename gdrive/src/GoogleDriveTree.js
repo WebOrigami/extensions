@@ -1,3 +1,4 @@
+import { naturalOrder } from "@weborigami/async-tree";
 import { google } from "googleapis";
 import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
@@ -73,7 +74,11 @@ export default class GoogleDriveTree {
 
   async keys() {
     const items = await this.getItems();
-    return Object.keys(items);
+    const keys = Object.keys(items);
+    // Origami tree drivers generally use natural sort order. For reference,
+    // Google Drive's own UI uses what seems to be natural sort order.
+    keys.sort(naturalOrder);
+    return keys;
   }
 }
 
