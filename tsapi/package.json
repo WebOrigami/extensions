@@ -1,0 +1,16 @@
+{
+  "name": "@weborigami/tsapi",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "main.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.0.62",
+    "@microsoft/api-extractor": "7.47.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.0.0"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
