@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "checkJs": true,
-    "noEmit": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noImplicitAny": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "outDir": "dist",
     "strict": true,
     "target": "ESNext"
   },
