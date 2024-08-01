@@ -7,8 +7,10 @@ import {
 import ts from "typescript";
 
 /**
- * Given a tree of JavaScript and TypeScript files, create a TypeScript compiler
- * host suitable for passing to ts.createProgram().
+ * Given a tree of JavaScript and TypeScript files, copy to create a new tree
+ * that can be used as a TypeScript compiler host. Any subsequent writes to the
+ * host -- for example, when the TypeScript compiler compiles a program -- will
+ * *not* update the original tree.
  *
  * @typedef {import("@weborigami/async-tree").Treelike} Treelike
  * @param {Treelike} treelike
