@@ -142,7 +142,7 @@
     /**
      * (REQUIRED) Whether to generate an API report.
      */
-    "enabled": true
+    "enabled": false
 
     /**
      * The base filename for the API report files, to be combined with "reportFolder" or "reportTempFolder"
@@ -264,7 +264,7 @@
     /**
      * (REQUIRED) Whether to generate the .d.ts rollup file.
      */
-    "enabled": true
+    "enabled": false
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated without any trimming.
@@ -420,7 +420,7 @@
       "default": {
         "logLevel": "warning"
         // "addToApiReportFile": false
-      }
+      },
 
       // "ae-extra-release-tag": {
       //   "logLevel": "warning",
@@ -428,6 +428,9 @@
       // },
       //
       // . . .
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      }
     },
 
     /**
@@ -441,7 +444,7 @@
       "default": {
         "logLevel": "warning"
         // "addToApiReportFile": false
-      }
+      },
 
       // "tsdoc-link-tag-unescaped-text": {
       //   "logLevel": "warning",
@@ -449,6 +452,16 @@
       // },
       //
       // . . .
+      "tsdoc-at-sign-in-word": { "logLevel": "none" },
+      "tsdoc-code-span-missing-delimiter": { "logLevel": "none" },
+      "tsdoc-escape-greater-than": { "logLevel": "none" },
+      "tsdoc-escape-right-brace": { "logLevel": "none" },
+      "tsdoc-html-tag-missing-greater-than": { "logLevel": "none" },
+      "tsdoc-malformed-inline-tag": { "logLevel": "none" },
+      "tsdoc-param-tag-missing-hyphen": { "logLevel": "none" },
+      "tsdoc-param-tag-with-invalid-optional-name": { "logLevel": "none" },
+      "tsdoc-param-tag-with-invalid-type": { "logLevel": "none" },
+      "tsdoc-undefined-tag": { "logLevel": "none" }
     }
   }
 }
