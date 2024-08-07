@@ -1,11 +1,5 @@
-import { FileTree, ObjectTree, toString } from "@weborigami/async-tree";
+import { ObjectTree } from "@weborigami/async-tree";
 import { HandleExtensionsTransform } from "@weborigami/language";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const files = new FileTree(dirname);
-const token = toString(await files.get(".githubToken"));
 
 export default async function gist(gistId) {
   const gistIdRegex = /[a-f0-9]{32}/;
