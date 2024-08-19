@@ -16,7 +16,7 @@ To use this, you will need to first obtain a GitHub [fine-grained personal acces
 You can then use the [Origami CLI](https://weborigami.org/cli) to display all the files in the gist:
 
 ```console
-$ ori package:@weborigami/gist(githubToken)/2d6e386378732c01110e2c61c3dadb76
+$ ori "package:@weborigami/gist(githubToken)/2d6e386378732c01110e2c61c3dadb76"
 README.md: This is the Read Me file.
 data.json: |-
   {
@@ -27,6 +27,6 @@ data.json: |-
 Or traverse a specific file and value in the gist:
 
 ```console
-$ ori "src/gist.js(githubToken)/2d6e386378732c01110e2c61c3dadb76/data.json/message"
+$ ori "package:@weborigami/gist(githubToken)/2d6e386378732c01110e2c61c3dadb76/data.json/message"
 Hello, world!
 ```
