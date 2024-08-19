@@ -18,6 +18,9 @@ export default async function gist(token, gistId) {
     token = await token.unpack();
   }
   token = toString(token);
+  if (!token) {
+    throw new Error("gist: The GitHub personal access token was not defined.");
+  }
   return gistId ? treeForGist(token, gistId) : treeForGist.bind(this, token);
 }
 
