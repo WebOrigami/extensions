@@ -14,7 +14,7 @@ Bear in mind that even a "long-lived" Instagram token will only be good for 60 d
 
 1. Use npm to install the main `@weborigami/origami` package and this `@weborigami/instagram` extension.
 1. Obtain an access token (above).
-1. Save the access token saved in a file called `token`.
+1. Save the access token in a file called `token`.
 1. Add the name of that `token` file to `.gitignore` so that your token will _not_ be stored in source control.
 
 With that, you can then use the [Origami CLI](https://weborigami.org/cli) to display a list of your Instagram album IDs:
@@ -23,13 +23,11 @@ With that, you can then use the [Origami CLI](https://weborigami.org/cli) to dis
 $ ori "@keys package:@weborigami/instagram(token)"
 ```
 
-The album IDs will be long numbers. You can then ask `ori` to display a list of the image files in the album with a given ID:
+The album IDs will be long numbers. You can then ask `ori` to display a list of the `.jpeg` files in an album with a given ID:
 
 ```console
 $ ori "@keys package:@weborigami/instagram(token)/<albumId>"
 ```
-
-This will display a list of the `.jpeg` files in the album.
 
 You can copy an album locally with:
 
