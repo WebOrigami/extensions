@@ -1,0 +1,13 @@
+{
+  "name": "@weborigami/instagram",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/instagram.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.0.63",
+    "@weborigami/language": "0.0.63"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
