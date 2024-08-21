@@ -1,7 +1,30 @@
-import { ObjectTree } from "@weborigami/async-tree";
+import { ObjectTree, isUnpackable, toString } from "@weborigami/async-tree";
 import { HandleExtensionsTransform } from "@weborigami/language";
 
-export default async function gist(gistId) {
+/**
+ * Returns a tree for a gist.
+ *
+ * The token parameter must be a string containing a GitHub personal access
+ * token, or a packed form (e.g., a Buffer) containing such a token.
+ *
+ * If a gistId is provided, the tree will be fetched immediately. Otherwise,
+ * this returns a function that can be called with a gistId to fetch the tree.
+ *
+ * @param {string|Packed} token
+ * @param {string?} gistId
+ */
+export default async function gist(token, gistId) {
+  if (isUnpackable(token)) {
+    token = await token.unpack();
+  }
+  token = toString(token);
+  if (!token) {
+    throw new Error("gist: The GitHub personal access token was not defined.");
+  }
+  return gistId ? treeForGist(token, gistId) : treeForGist.bind(this, token);
+}
+
+async function treeForGist(token, gistId) {
   const gistIdRegex = /[a-f0-9]{32}/;
   if (!gistIdRegex.test(gistId)) {
     return undefined;
