@@ -9,5 +9,5 @@
     "strict": true,
     "target": "ESNext"
   },
-  "include": ["sample"]
+  "include": ["src"]
 }

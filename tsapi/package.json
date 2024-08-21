@@ -7,15 +7,15 @@
     "@weborigami/async-tree": "0.0.62",
     "@microsoft/api-extractor": "7.47.4",
     "@microsoft/api-extractor-model": "7.29.4",
-    "@microsoft/api-documenter": "7.25.9"
+    "@microsoft/api-documenter": "7.25.9",
+    "typescript": "5.4.2"
   },
   "devDependencies": {
-    "@types/node": "22.0.0",
-    "typescript": "5.4.2"
+    "@types/node": "22.0.0"
   },
   "scripts": {
     "api": "api-extractor run --local",
-    "build": "tsc",
+    "build": "tsc --project sample",
     "docs": "api-documenter yaml --input-folder temp --output-folder docs",
     "test": "node --test --test-reporter=spec"
   }

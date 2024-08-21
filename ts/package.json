@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.62",
+    "@weborigami/ts": "0.0.1",
     "typescript": "5.4.2"
   },
   "devDependencies": {
