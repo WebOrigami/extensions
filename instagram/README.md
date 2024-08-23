@@ -8,7 +8,7 @@ See Instagram's [Getting Started](https://developers.facebook.com/docs/instagram
 
 At the end of that process, you should have an access token (a string of letters and numbers) that you can save in a file.
 
-Bear in mind that even a "long-lived" Instagram token will only be good for 60 days (as of August 2024).
+Bear in mind that (as of August 2024) even a "long-lived" Instagram token will only be good for 60 days.
 
 ## Usage
 
