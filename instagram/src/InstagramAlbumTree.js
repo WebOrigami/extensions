@@ -1,3 +1,5 @@
+import fetchWithBackoff from "./fetchWithBackoff.js";
+
 const igApiBase = "https://graph.instagram.com";
 
 export default class InstagramAlbumTree {
@@ -11,7 +13,7 @@ export default class InstagramAlbumTree {
     const items = await this.getItems();
 
     const id = items[key];
-    const response = await fetch(
+    const response = await fetchWithBackoff(
       `${igApiBase}/${id}?fields=media_url&access_token=${this.token}`
     );
     if (!response.ok) {
@@ -22,7 +24,7 @@ export default class InstagramAlbumTree {
     if (!media_url) {
       throw new Error(`Couldn't get URL for the image ${imageName}`);
     }
-    const imageResponse = await fetch(media_url);
+    const imageResponse = await fetchWithBackoff(media_url);
     if (!imageResponse.ok) {
       throw new Error(
         `Failed to fetch media ${media_url}: ${imageResponse.statusText}`
@@ -44,7 +46,7 @@ export default class InstagramAlbumTree {
 }
 
 async function fetchItems(token, albumId) {
-  const response = await fetch(
+  const response = await fetchWithBackoff(
     `${igApiBase}/${albumId}?fields=children&access_token=${token}`
   );
   if (!response.ok) {

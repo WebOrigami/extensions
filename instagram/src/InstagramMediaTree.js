@@ -1,3 +1,4 @@
+import fetchWithBackoff from "../../dropbox/src/fetchWithBackoff.js";
 import InstagramAlbumTree from "./InstagramAlbumTree.js";
 
 const igApiBase = "https://graph.instagram.com";
@@ -30,7 +31,7 @@ async function fetchItems(token, userId) {
   let url = `${igApiBase}/${userId}/media?fields=id,media_type,timestamp&access_token=${token}`;
   const items = {};
   while (url) {
-    const response = await fetch(url);
+    const response = await fetchWithBackoff(url);
     if (!response.ok) {
       throw new Error(response.statusText);
     }
