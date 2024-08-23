@@ -12,8 +12,20 @@ export default class InstagramMediaTree {
 
   async get(key) {
     const items = await this.getItems();
-    const id = items[key];
-    return id ? new InstagramAlbumTree(this.token, id) : undefined;
+    const item = items[key];
+    if (typeof item === "string") {
+      // Image or video media URL
+      const response = await fetchWithBackoff(item);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch media ${item}: ${response.statusText}`
+        );
+      }
+      return response.arrayBuffer();
+    } else if (item) {
+      // Album
+      return new InstagramAlbumTree(item);
+    }
   }
 
   async getItems() {
@@ -28,7 +40,7 @@ export default class InstagramMediaTree {
 }
 
 async function fetchItems(token, userId) {
-  let url = `${igApiBase}/${userId}/media?fields=id,media_type,timestamp&access_token=${token}`;
+  let url = `${igApiBase}/${userId}/media?fields=children{id,media_type,media_url,timestamp},id,media_type,media_url,timestamp&access_token=${token}`;
   const items = {};
   while (url) {
     const response = await fetchWithBackoff(url);
@@ -38,10 +50,16 @@ async function fetchItems(token, userId) {
     const { data, paging } = await response.json();
 
     for (const media of data) {
-      const { id, media_type, timestamp } = media;
-      if (media_type === "CAROUSEL_ALBUM") {
-        const key = keyFromTimestamp(timestamp);
-        items[key] = id;
+      const { children, media_type, media_url } = media;
+      const key = keyFromMedia(media);
+      const value =
+        media_type === "CAROUSEL_ALBUM"
+          ? mapKeysToMediaUrls(children.data)
+          : media_type === "VIDEO" || media_type === "IMAGE"
+          ? media_url
+          : undefined;
+      if (value) {
+        items[key] = value;
       }
     }
 
@@ -53,14 +71,39 @@ async function fetchItems(token, userId) {
 // Return a key for a timestamp that avoids the use of colons, which are not
 // allowed in filenames.
 //
-// Example: "2024-08-24T08:38:41.000Z" returns "2024-08-24 08.38.41"
-//
+// Example: "2024-08-24T08:38:41.000Z" returns "2024-08-24 08_38_41"
 function keyFromTimestamp(timestamp) {
   const date = new Date(timestamp);
   let key = date.toISOString();
   // Strip the millisecond period and everything after it
   key = key.slice(0, key.indexOf("."));
-  // Replace T with space, and colons with periods
-  key = key.replace("T", " ").replace(/:/g, ".");
+  // Replace T with space, and colons with underscores
+  key = key.replace("T", " ").replace(/:/g, "_");
   return key;
+}
+
+function keyFromMedia(media, index) {
+  const { media_type, timestamp } = media;
+  const key = index ?? keyFromTimestamp(timestamp);
+  switch (media_type) {
+    case "IMAGE":
+      return `${key}.jpeg`;
+
+    case "VIDEO":
+      return `${key}.mp4`;
+
+    case "CAROUSEL_ALBUM":
+      return key;
+  }
+}
+
+function mapKeysToMediaUrls(children) {
+  let index = 0;
+  const result = {};
+  for (const media of children) {
+    const key = keyFromMedia(media, index);
+    result[key] = media.media_url;
+    index++;
+  }
+  return result;
 }
