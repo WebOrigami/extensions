@@ -44,3 +44,9 @@ $ ori "@copy package:@weborigami/instagram(token)/<albumName>, @files/album"
 ```
 
 This will create a folder called `album` containing copies of all the images and videos in the indicated album.
+
+You can archive your whole Instagram profile to a folder called `archive` with:
+
+```console
+$ ori "@copy package:@weborigami/instagram(token), @files/archive"
+```
