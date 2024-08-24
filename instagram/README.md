@@ -17,22 +17,30 @@ Bear in mind that (as of August 2024) even a "long-lived" Instagram token will o
 1. Save the access token in a file called `token`.
 1. Add the name of that `token` file to `.gitignore` so that your token will _not_ be stored in source control.
 
-With that, you can then use the [Origami CLI](https://weborigami.org/cli) to display a list of your Instagram albums:
+With that, you can then use the [Origami CLI](https://weborigami.org/cli) to display a list of your top-level Instagram albums, images, and videos:
 
 ```console
 $ ori "@keys package:@weborigami/instagram(token)"
 ```
 
-Each album name will be the album's timestamp. You can then ask `ori` to display a list of the images in an album with a given name:
+Each top-level file or folder will have a name with the item's date and time.
+
+You can copy a top-level image (or video) locally:
 
 ```console
-$ ori "@keys package:@weborigami/instagram(token)/<album name>"
+$ ori "package:@weborigami/instagram(token)/<imageName>" > fileName.jpg
+```
+
+You can ask `ori` to display a list of the images in an album with a given name:
+
+```console
+$ ori "@keys package:@weborigami/instagram(token)/<albumName>"
 ```
 
 You can copy an album locally with:
 
 ```console
-$ ori "@copy package:@weborigami/instagram(token)/<album name>, @files/album"
+$ ori "@copy package:@weborigami/instagram(token)/<albumName>, @files/album"
 ```
 
-This will create a folder called `album` containing copies of all the images in the indicated album.
+This will create a folder called `album` containing copies of all the images and videos in the indicated album.

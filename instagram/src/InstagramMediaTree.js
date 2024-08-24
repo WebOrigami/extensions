@@ -71,14 +71,14 @@ async function fetchItems(token, userId) {
 // Return a key for a timestamp that avoids the use of colons, which are not
 // allowed in filenames.
 //
-// Example: "2024-08-24T08:38:41.000Z" returns "2024-08-24 08_38_41"
+// Example: "2024-08-24T08:38:41.000Z" returns "2024-08-24_08_38_41"
 function keyFromTimestamp(timestamp) {
   const date = new Date(timestamp);
   let key = date.toISOString();
   // Strip the millisecond period and everything after it
   key = key.slice(0, key.indexOf("."));
-  // Replace T with space, and colons with underscores
-  key = key.replace("T", " ").replace(/:/g, "_");
+  // Replace T and colons with underscores
+  key = key.replaceAll(/[T:]/g, "_");
   return key;
 }
 

@@ -7,7 +7,7 @@ const tokenPath = new URL("../token", import.meta.url);
 const token = await fs.readFile(tokenPath);
 const userId = "7920122544752391";
 const fixture = await instagram(token, userId);
-const album = await fixture.get("2020-08-04 16_06_46");
+const album = await fixture.get("2020-08-04_16_06_46");
 
 describe("instagram", () => {
   test("can get album keys", async () => {
