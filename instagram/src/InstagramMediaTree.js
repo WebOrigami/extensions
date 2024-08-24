@@ -1,4 +1,4 @@
-import fetchWithBackoff from "../../dropbox/src/fetchWithBackoff.js";
+import fetchWithBackoff from "./fetchWithBackoff.js";
 import InstagramAlbumTree from "./InstagramAlbumTree.js";
 
 const igApiBase = "https://graph.instagram.com";
