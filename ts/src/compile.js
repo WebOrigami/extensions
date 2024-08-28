@@ -15,7 +15,7 @@ export default async function compile(treelike, options) {
     // Options are packed as a file Buffer or similar structure; unpack and
     // parse as TypeScript compiler options.
     const unpacked = await options.unpack();
-    const plain = await Tree.plain(unpacked);
+    options = await Tree.plain(unpacked);
   } else if (options) {
     options = await Tree.plain(options);
   }
@@ -28,5 +28,6 @@ export default async function compile(treelike, options) {
   const paths = await Tree.paths(treeHost);
   const program = ts.createProgram(paths, options, treeHost);
   program.emit();
+
   return treeHost;
 }
