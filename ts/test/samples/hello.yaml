@@ -5,3 +5,7 @@ src:
     export default function greet(name: string) {
       return `Hello, ${name}!`;
     }
+tsconfig.json: |
+  {
+    "module": "ESNext"
+  }
