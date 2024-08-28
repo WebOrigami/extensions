@@ -1,0 +1,16 @@
+{
+  "name": "@weborigami/ts",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "main.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.0.63",
+    "typescript": "5.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.5.1"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}

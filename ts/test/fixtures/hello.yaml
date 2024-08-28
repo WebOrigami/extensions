@@ -1,0 +1,7 @@
+ReadMe.md: |
+  This YAML project embodies a compilable TypeScript project.
+src:
+  index.ts: |
+    export default function greet(name: string) {
+      return `Hello, ${name}!`;
+    }
