@@ -1,2 +1,2 @@
-export { default as compile } from "./src/compile.js";
 export { default as host } from "./src/host.js";
+export { default as tsc } from "./src/tsc.js";

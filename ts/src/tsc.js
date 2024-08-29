@@ -2,7 +2,7 @@ import { isUnpackable, Tree } from "@weborigami/async-tree";
 import ts from "typescript";
 import host from "./host.js";
 
-export default async function compile(treelike, options) {
+export default async function tsc(treelike, options) {
   const treeHost = await host(treelike);
 
   if (!options) {
@@ -24,10 +24,14 @@ export default async function compile(treelike, options) {
   // actually parses compiler options from a plain object with string values.
   // E.g., "ESNext" will be parsed as the `ESNext` enum value.
   options = ts.convertCompilerOptionsFromJson(options).options;
+  if (!options.outDir) {
+    options.outDir = "dist";
+  }
 
   const paths = await Tree.paths(treeHost);
   const program = ts.createProgram(paths, options, treeHost);
   program.emit();
 
-  return treeHost;
+  const dist = await treeHost.get("dist");
+  return dist;
 }
