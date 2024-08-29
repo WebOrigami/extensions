@@ -7,10 +7,11 @@ export default async function tsc(treelike, options) {
 
   if (!options) {
     // Read config from tree.
-    options = await treeHost.get("tsconfig.json");
-    if (typeof options === "string") {
-      options = JSON.parse(options);
-    }
+    const config = await treeHost.get("tsconfig.json");
+    options =
+      typeof config === "string"
+        ? JSON.parse(config)
+        : await Tree.plain(config);
   } else if (isUnpackable(options)) {
     // Options are packed as a file Buffer or similar structure; unpack and
     // parse as TypeScript compiler options.
