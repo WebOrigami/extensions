@@ -24,7 +24,9 @@ export default class InstagramMediaTree {
       return response.arrayBuffer();
     } else if (item) {
       // Album
-      return new InstagramAlbumTree(item);
+      const tree = new InstagramAlbumTree(item);
+      tree.parent = this;
+      return tree;
     }
   }
 

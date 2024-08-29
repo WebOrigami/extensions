@@ -9,5 +9,8 @@ export default async function instagram(token, userId = "me") {
   if (!token) {
     throw new Error("The Instagram access token was not defined.");
   }
-  return new InstagramMediaTree(token, userId);
+
+  const tree = new InstagramMediaTree(token, userId);
+  tree.parent = this;
+  return tree;
 }
