@@ -20,18 +20,23 @@ export default async function tsc(treelike, options) {
     options = await Tree.plain(options);
   }
 
+  if (!options.outDir) {
+    // Specify a default output directory so compiler outputs don't end up mixed
+    // into the source folders.
+    options.outDir = "dist";
+  }
+  const outDir = options.outDir;
+
   // Note: despite the "Json" in the name, this TypeScript helper function
   // actually parses compiler options from a plain object with string values.
   // E.g., "ESNext" will be parsed as the `ESNext` enum value.
   options = ts.convertCompilerOptionsFromJson(options).options;
-  if (!options.outDir) {
-    options.outDir = "dist";
-  }
 
   const paths = await Tree.paths(treeHost);
   const program = ts.createProgram(paths, options, treeHost);
   program.emit();
 
-  const dist = await treeHost.get("dist");
+  const dist = await Tree.traversePath(treeHost, outDir);
+  dist.parent = this;
   return dist;
 }
