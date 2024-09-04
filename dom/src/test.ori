@@ -1,0 +1,4 @@
+@map(
+  dom.js(index.html)/querySelectorAll('div[id]')
+  (el) => (el)/id
+)

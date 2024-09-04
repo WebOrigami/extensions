@@ -1,0 +1,16 @@
+{
+  "name": "@weborigami/dom",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/dom.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.0.63",
+    "jsdom": "16.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.5.1"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
