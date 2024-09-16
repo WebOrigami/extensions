@@ -8,6 +8,12 @@ export default class InstagramAlbumTree {
   }
 
   async get(key) {
+    if (key == null) {
+      // Reject nullish key.
+      throw new ReferenceError(
+        `${this.constructor.name}: Cannot get a null or undefined key.`
+      );
+    }
     const media_url = this.mapKeysToMediaUrls[key];
     if (!media_url) {
       throw new Error(`Couldn't get URL for ${key}`);

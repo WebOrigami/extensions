@@ -27,7 +27,7 @@ export default async function gist(token, gistId) {
 async function treeForGist(token, gistId) {
   const gistIdRegex = /[a-f0-9]{32}/;
   if (!gistIdRegex.test(gistId)) {
-    return undefined;
+    throw `gist: Invalid gist ID: ${gistId}`;
   }
   const gistUrl = `https://api.github.com/gists/${gistId}`;
   const headers = new Headers({
@@ -36,7 +36,7 @@ async function treeForGist(token, gistId) {
   });
   const response = await fetch(gistUrl, { headers });
   if (!response.ok) {
-    return undefined;
+    throw `Failed to fetch gist ${gistId}: ${response.statusText}`;
   }
 
   const { files } = await response.json();

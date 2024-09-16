@@ -20,8 +20,11 @@ export default class GoogleDriveTree {
   }
 
   async get(key) {
-    if (!key) {
-      return undefined;
+    if (key == null) {
+      // Reject nullish key.
+      throw new ReferenceError(
+        `${this.constructor.name}: Cannot get a null or undefined key.`
+      );
     }
 
     const items = await this.getItems();
