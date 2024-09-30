@@ -1,4 +1,4 @@
-import { naturalOrder } from "@weborigami/async-tree";
+import { naturalOrder, trailingSlash } from "@weborigami/async-tree";
 import fetchWithBackoff from "./fetchWithBackoff.js";
 
 /**
@@ -10,9 +10,15 @@ export default class DropboxTree {
     if (path === undefined || path === "/") {
       // Dropbox wants the root path as the empty string.
       path = "";
-    } else if (path !== "" && !path?.startsWith("/")) {
-      // Dropbox wants all other paths to start with a slash.
-      path = `/${path}`;
+    } else if (path !== "") {
+      if (!path?.startsWith("/")) {
+        // Dropbox wants all non-root paths to start with a slash.
+        path = `/${path}`;
+      }
+      if (!path.endsWith("/")) {
+        // We want to including trailing slashes to indicate a folder.
+        path += "/";
+      }
     }
     this.path = path;
     this.itemsPromise = null;
@@ -26,11 +32,27 @@ export default class DropboxTree {
       );
     }
 
-    const items = await this.getItems();
-    const item = items[key];
-    if (!item) {
-      // Asked for a key that doesn't exist in this folder.
+    // A key with a trailing slash is for a folder; return a subtree without
+    // making a network request.
+    if (trailingSlash.has(key)) {
+      const path = this.path + key;
+      return Reflect.construct(this.constructor, [this.accessToken, path]);
+    }
+
+    // HACK: For now we don't allow lookup of Origami extension handlers.
+    if (key.endsWith("_handler")) {
       return undefined;
+    }
+
+    const items = await this.getItems();
+    let item = items[key];
+    if (!item) {
+      // Try with trailing slash
+      item = items[trailingSlash.add(key)];
+      if (!item) {
+        // Asked for a key that doesn't exist in this folder.
+        return undefined;
+      }
     }
 
     const path = item.path_display;
@@ -68,12 +90,6 @@ export default class DropboxTree {
   async getItems() {
     this.itemsPromise ??= getFolderItems(this.accessToken, this.path);
     return this.itemsPromise;
-  }
-
-  async isKeyForSubtree(key) {
-    const items = await this.getItems();
-    const item = items[key];
-    return item?.tag === "folder";
   }
 
   // Get the contents of this folder.
@@ -125,11 +141,12 @@ async function getFolderItems(accessToken, path) {
     // Add the entries in the response to the items.
     for (const entry of json.entries) {
       const tag = entry[".tag"];
-      const { name, path_display } = entry;
-      if (entry[".tag"] === "deleted") {
+      if (tag === "deleted") {
         continue;
       }
-      items[name] = {
+      const { name, path_display } = entry;
+      const key = trailingSlash.toggle(name, tag === "folder");
+      items[key] = {
         tag,
         path_display,
       };

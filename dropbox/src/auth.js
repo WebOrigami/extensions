@@ -5,10 +5,14 @@ import DropboxTree from "./DropboxTree.js";
 // Map of app secret to access token.
 const accessTokenMap = new Map();
 
-// Dictionary of access token to path to DropboxTree.
+// Dictionary of access token to DropboxTree.
 const treeMap = {};
 
-export default async function auth(credentialsTreelike, path) {
+export default async function auth(credentialsTreelike, path = "") {
+  if (!credentialsTreelike) {
+    throw new ReferenceError("Missing Dropbox credentials");
+  }
+
   const credentials = await Tree.plain(credentialsTreelike);
 
   let accessToken = accessTokenMap.get(credentials.app_secret);
@@ -17,20 +21,11 @@ export default async function auth(credentialsTreelike, path) {
     accessTokenMap.set(credentials.app_secret, accessToken);
   }
 
-  if (path === undefined || path === "/") {
-    // Dropbox wants the root path as the empty string.
-    path = "";
-  } else if (path !== "" && !path?.startsWith("/")) {
-    // Dropbox wants all other paths to start with a slash.
-    path = `/${path}`;
-  }
-
-  let tree = treeMap[accessToken]?.[path];
+  let tree = treeMap[accessToken];
   if (!tree) {
     tree = new (HandleExtensionsTransform(DropboxTree))(accessToken, path);
     tree.parent = this;
-    treeMap[accessToken] ??= {};
-    treeMap[accessToken][path] = tree;
+    treeMap[accessToken] = tree;
   }
 
   return tree;
