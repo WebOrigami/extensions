@@ -4,6 +4,7 @@ import {
   Tree,
   isPlainObject,
   keysFromPath,
+  trailingSlash,
 } from "@weborigami/async-tree";
 import { HandleExtensionsTransform } from "@weborigami/language";
 import Zip from "adm-zip";
@@ -96,7 +97,7 @@ function addToMap(map, path, value) {
  */
 async function traversePaths(tree, fn, base = "") {
   for (const key of await tree.keys()) {
-    const path = base ? `${base}/${key}` : key;
+    const path = base ? `${trailingSlash.remove(base)}/${key}` : key;
     const value = await tree.get(key);
     if (Tree.isAsyncTree(value)) {
       await traversePaths(value, fn, path);
