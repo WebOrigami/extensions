@@ -7,6 +7,9 @@
     "@weborigami/async-tree": "0.0.66",
     "@weborigami/language": "0.0.66"
   },
+  "devDependencies": {
+    "@weborigami/origami": "0.0.66"
+  },
   "scripts": {
     "test": "node --test --test-reporter=spec"
   }

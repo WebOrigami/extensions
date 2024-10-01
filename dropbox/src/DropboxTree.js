@@ -32,11 +32,16 @@ export default class DropboxTree {
       );
     }
 
-    // A key with a trailing slash is for a folder; return a subtree without
-    // making a network request.
-    if (trailingSlash.has(key)) {
+    // A key with a trailing slash and no extension is for a folder; return a
+    // subtree without making a network request.
+    if (trailingSlash.has(key) && !key.includes(".")) {
       const path = this.path + key;
-      return Reflect.construct(this.constructor, [this.accessToken, path]);
+      const subtree = Reflect.construct(this.constructor, [
+        this.accessToken,
+        path,
+      ]);
+      subtree.parent = this;
+      return subtree;
     }
 
     // HACK: For now we don't allow lookup of Origami extension handlers.
@@ -47,8 +52,8 @@ export default class DropboxTree {
     const items = await this.getItems();
     let item = items[key];
     if (!item) {
-      // Try with trailing slash
-      item = items[trailingSlash.add(key)];
+      // Try alternate key with/without trailing slash.
+      item = items[trailingSlash.toggle(key)];
       if (!item) {
         // Asked for a key that doesn't exist in this folder.
         return undefined;
