@@ -1,8 +1,6 @@
 import {
   DeepMapTree,
-  DeepObjectTree,
   Tree,
-  isPlainObject,
   keysFromPath,
   trailingSlash,
 } from "@weborigami/async-tree";
@@ -21,14 +19,9 @@ export default {
    * @param {import("@weborigami/async-tree").Treelike} treelike
    */
   async pack(treelike) {
-    // If the input is a plain object, we'll treat it as a deep object tree.
-    const tree =
-      !Tree.isAsyncTree(treelike) && isPlainObject(treelike)
-        ? new DeepObjectTree(treelike)
-        : Tree.from(treelike);
     // The ZIP file should leave the files in tree order.
     const zip = new Zip({ noSort: true });
-    await traversePaths(tree, (value, path) => {
+    await traversePaths(treelike, (value, path) => {
       if (value instanceof String) {
         value = String(value);
       }
@@ -97,15 +90,16 @@ function addToMap(map, path, value) {
  * Traverse the tree, invoking the given callback function for each
  * value. Pass the value and path to the callback function.
  *
- * @param {import("@weborigami/types").AsyncTree} tree
+ * @param {import("@weborigami/types").Treelike} tree
  * @param {Function} fn
  * @param {string} [base]
  */
-async function traversePaths(tree, fn, base = "") {
+async function traversePaths(treelike, fn, base = "") {
+  const tree = Tree.from(treelike, { deep: true });
   for (const key of await tree.keys()) {
     const path = base ? `${trailingSlash.remove(base)}/${key}` : key;
     const value = await tree.get(key);
-    if (Tree.isAsyncTree(value)) {
+    if (Tree.isTreelike(value)) {
       await traversePaths(value, fn, path);
     } else {
       await fn(value, path);
