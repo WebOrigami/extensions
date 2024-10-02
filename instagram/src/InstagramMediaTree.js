@@ -1,3 +1,4 @@
+import { trailingSlash } from "@weborigami/async-tree";
 import fetchWithBackoff from "./fetchWithBackoff.js";
 import InstagramAlbumTree from "./InstagramAlbumTree.js";
 
@@ -19,7 +20,13 @@ export default class InstagramMediaTree {
     }
 
     const items = await this.getItems();
-    const item = items[key];
+
+    let item = items[key];
+    if (!item) {
+      // Try alternative key with/without trailing slash
+      item = items[trailingSlash.toggle(key)];
+    }
+
     if (typeof item === "string") {
       // Image or video media URL
       const response = await fetchWithBackoff(item);
@@ -102,7 +109,7 @@ function keyFromMedia(media, index) {
       return `${key}.mp4`;
 
     case "CAROUSEL_ALBUM":
-      return key;
+      return trailingSlash.add(key);
   }
 }
 
