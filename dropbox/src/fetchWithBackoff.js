@@ -12,10 +12,16 @@ const baseDelaySeconds = 1;
  */
 export default async function fetchWithBackoff(url, options) {
   for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
-    const response = await fetch(url, options);
-    if (response.status !== 429) {
-      return response;
+    try {
+      const response = await fetch(url, options);
+      if (response.status !== 429) {
+        return response;
+      }
+    } catch (error) {
+      // Network error, warn and retry
+      console.warn(error);
     }
+
     // Wait and retry
     const retryAfterSeconds =
       parseInt(response.headers.get("Retry-After")) || baseDelaySeconds;
