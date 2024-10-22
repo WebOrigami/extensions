@@ -27,8 +27,11 @@ export default async function fetchWithBackoff(url, options) {
     }
 
     // Wait and retry
-    const retryAfterSeconds =
-      parseInt(response.headers.get("Retry-After")) || baseDelaySeconds;
+    const retryAfterSeconds = baseDelaySeconds;
+    if (response?.headers?.get("Retry-After")) {
+      retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
+    }
+
     // Use exponential backoff with jitter to avoid thundering herd problem
     const jitter = Math.random();
     const backoffSeconds = jitter * Math.pow(2, retryCount);
