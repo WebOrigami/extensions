@@ -27,7 +27,7 @@ export default async function fetchWithBackoff(url, options) {
     }
 
     // Wait and retry
-    const retryAfterSeconds = baseDelaySeconds;
+    let retryAfterSeconds = baseDelaySeconds;
     if (response?.headers?.get("Retry-After")) {
       retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
     }
