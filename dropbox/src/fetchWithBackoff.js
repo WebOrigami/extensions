@@ -12,9 +12,11 @@ const baseDelaySeconds = 1;
  */
 export default async function fetchWithBackoff(url, options) {
   for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
+    let response;
     try {
-      const response = await fetch(url, options);
+      response = await fetch(url, options);
       if (response.status !== 429) {
+        // 429 Too Many Requests
         return response;
       }
     } catch (error) {
