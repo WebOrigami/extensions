@@ -72,15 +72,14 @@ export default class DropboxTree {
     }
 
     // Return a buffer for the indicated file from the Dropbox content API.
-    const headers = new Headers({
-      Authorization: `Bearer ${this.accessToken}`,
-      "Dropbox-API-Arg": JSON.stringify({ path }),
-    });
     const response = await fetchWithBackoff(
       "https://content.dropboxapi.com/2/files/download",
       {
         method: "POST",
-        headers,
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Dropbox-API-Arg": JSON.stringify({ path }),
+        },
       }
     );
     if (!response.ok) {

@@ -14,6 +14,9 @@ export default async function fetchWithBackoff(url, options) {
   for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
     let response;
     try {
+      if (retryCount === 0) {
+        throw new Error("Fake error");
+      }
       response = await fetch(url, options);
       if (response.status !== 429) {
         // 429 Too Many Requests
@@ -21,7 +24,7 @@ export default async function fetchWithBackoff(url, options) {
       }
     } catch (error) {
       // Network error, warn and retry
-      console.warn(error);
+      console.warn(`Warning: ${error.message}`);
       console.warn(url);
       console.warn(JSON.stringify(options));
     }
