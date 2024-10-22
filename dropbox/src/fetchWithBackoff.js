@@ -20,6 +20,8 @@ export default async function fetchWithBackoff(url, options) {
     } catch (error) {
       // Network error, warn and retry
       console.warn(error);
+      console.warn(url);
+      console.warn(JSON.stringify(options));
     }
 
     // Wait and retry
