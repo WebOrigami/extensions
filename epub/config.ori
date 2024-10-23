@@ -1,0 +1,3 @@
+{
+  epub_handler = src/epub_handler.js/
+}

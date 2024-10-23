@@ -46,15 +46,26 @@ export default {
     const files = new Map();
     for (const entry of zip.getEntries()) {
       const path = entry.entryName;
-      const value = entry.getData();
-      // Skip directory entries -- we'll create them as needed.
-      if (!path.endsWith("/")) {
-        addToMap(files, path, value);
+
+      // macOS adds a __MACOSX directory to ZIP files, which we don't want.
+      if (path.startsWith("__MACOSX/")) {
+        continue;
       }
+
+      // Skip directory entries -- we'll create them as needed.
+      if (path.endsWith("/")) {
+        continue;
+      }
+
+      // Defer loading of actual data
+      const value = () => entry.getData();
+      addToMap(files, path, value);
     }
 
     // Convert deep map structure to async tree.
-    const tree = new (HandleExtensionsTransform(DeepMapTree))(files);
+    const tree = new (InvokeFunctionsTransform(
+      HandleExtensionsTransform(DeepMapTree)
+    ))(files);
     tree.parent = options?.parent;
     return tree;
   },
@@ -84,6 +95,19 @@ function addToMap(map, path, value) {
 
   // Set the value in the final parent.
   parent.set(filename, value);
+}
+
+// TODO: Use invokeFunctions instead
+function InvokeFunctionsTransform(Base) {
+  return class InvokeFunctions extends Base {
+    async get(key) {
+      let value = await super.get(key);
+      if (typeof value === "function") {
+        value = value();
+      }
+      return value;
+    }
+  };
 }
 
 /**

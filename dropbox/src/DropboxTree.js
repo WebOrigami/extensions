@@ -44,16 +44,23 @@ export default class DropboxTree {
       return subtree;
     }
 
+    const normalizedKey = trailingSlash.remove(key);
+
     // HACK: For now we don't allow lookup of Origami extension handlers.
-    if (key.endsWith("_handler")) {
+    if (normalizedKey.endsWith("_handler")) {
       return undefined;
     }
 
+    if (normalizedKey === ".zip") {
+      // Return a buffer for a ZIP archive of the entire folder.
+      return this.getFolderZipArchive();
+    }
+
     const items = await this.getItems();
-    let item = items[key];
+    let item = items[normalizedKey];
     if (!item) {
       // Try alternate key with/without trailing slash.
-      item = items[trailingSlash.toggle(key)];
+      item = items[trailingSlash.toggle(normalizedKey)];
       if (!item) {
         // Asked for a key that doesn't exist in this folder.
         return undefined;
@@ -74,6 +81,27 @@ export default class DropboxTree {
     // Return a buffer for the indicated file from the Dropbox content API.
     const response = await fetchWithBackoff(
       "https://content.dropboxapi.com/2/files/download",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Dropbox-API-Arg": JSON.stringify({ path }),
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
+      );
+    }
+
+    return response.arrayBuffer();
+  }
+
+  async getFolderZipArchive() {
+    const path = this.path;
+    const response = await fetchWithBackoff(
+      "https://content.dropboxapi.com/2/files/download_zip",
       {
         method: "POST",
         headers: {
