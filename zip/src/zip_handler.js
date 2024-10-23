@@ -35,9 +35,9 @@ export default {
    * Unpack a ZIP file
    */
   async unpack(buffer, options) {
-    // adm-zip seems to accept a Buffer but not an Uint8Array. Origami generally
-    // prefers Uint8Array, but for this case we'll convert it to a Buffer.
-    if (buffer instanceof Uint8Array) {
+    // Origami generally prefers keeping things as an Uint8Array or ArrayBuffer,
+    // but adm-zip only accepts a Buffer.
+    if (buffer instanceof Uint8Array || buffer instanceof ArrayBuffer) {
       buffer = Buffer.from(buffer);
     }
 
