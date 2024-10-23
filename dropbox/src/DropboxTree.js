@@ -35,10 +35,9 @@ export default class DropboxTree {
     // A key with a trailing slash and no extension is for a folder; return a
     // subtree without making a network request.
     if (trailingSlash.has(key) && !key.includes(".")) {
-      const path = this.path + key;
       const subtree = Reflect.construct(this.constructor, [
         this.accessToken,
-        path,
+        this.path + key,
       ]);
       subtree.parent = this;
       return subtree;
@@ -51,9 +50,9 @@ export default class DropboxTree {
       return undefined;
     }
 
-    if (normalizedKey === ".zip") {
+    if (normalizedKey === ".folder.zip") {
       // Return a buffer for a ZIP archive of the entire folder.
-      return this.getFolderZipArchive();
+      return await this.getFolderZipArchive();
     }
 
     const items = await this.getItems();
