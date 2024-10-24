@@ -103,7 +103,7 @@ function InvokeFunctionsTransform(Base) {
     async get(key) {
       let value = await super.get(key);
       if (typeof value === "function") {
-        value = value();
+        value = await value();
       }
       return value;
     }
