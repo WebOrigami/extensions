@@ -9,7 +9,7 @@ This is intended to be useful to Handlebars users, and also as a reference imple
 
 ```
 {
-  hbs_handler = package:@weborigami/handlebars
+  hbs.handler = package:@weborigami/handlebars
 }
 ```
 

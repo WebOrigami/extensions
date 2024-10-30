@@ -1,7 +1,7 @@
 import Zip from "adm-zip";
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import epubHandler from "../src/epub_handler.js";
+import epubHandler from "../src/epub.handler.js";
 
 describe("EPUB handler", () => {
   test("ensures mimetype file comes first", async () => {

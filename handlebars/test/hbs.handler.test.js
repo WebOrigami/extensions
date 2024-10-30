@@ -1,7 +1,7 @@
 import { ObjectTree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import hbsHandler from "../src/hbs_handler.js";
+import hbsHandler from "../src/hbs.handler.js";
 
 describe("Handlebars hbs extension handler", () => {
   test("returns a function that applies a Handlebars template", async () => {

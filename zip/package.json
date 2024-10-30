@@ -2,7 +2,7 @@
   "name": "@weborigami/zip",
   "version": "0.0.6",
   "type": "module",
-  "main": "src/zip_handler.js",
+  "main": "src/zip.handler.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.71",
     "@weborigami/language": "0.0.71",

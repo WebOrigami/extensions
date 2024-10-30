@@ -2,7 +2,7 @@
   "name": "@weborigami/handlebars",
   "version": "0.0.3",
   "type": "module",
-  "main": "src/hbs_handler.js",
+  "main": "src/hbs.handler.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.60",
     "handlebars": "4.7.8"
