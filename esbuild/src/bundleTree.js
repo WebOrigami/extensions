@@ -1,79 +1,116 @@
-import { scope, Tree } from "@weborigami/async-tree";
+import { scope, toString, Tree } from "@weborigami/async-tree";
 import { build } from "esbuild";
 
+/**
+ *
+ * @param {import("@weborigami/async-tree").Treelike} treelike
+ * @param {string|undefined} entryPath
+ * @returns
+ */
 export default async function bundleTree(treelike, entryPath) {
-  const tree = await Tree.from(treelike);
-  const thisScope = this ? scope(this) : null;
-  let nodeModules;
+  const localTree = await Tree.from(treelike);
+
+  if (entryPath === undefined) {
+    entryPath = "*";
+  } else if (!entryPath.startsWith("./")) {
+    // Ensure that the entry path is relative to the root of the tree
+    entryPath = `./${entryPath}`;
+  }
 
   const built = await build({
     bundle: true,
     entryPoints: [entryPath],
     format: "esm",
     write: false,
-    plugins: [
-      {
-        name: "async-tree-files",
-
-        setup(build) {
-          build.onResolve({ filter: /.js$/ }, (args) => ({
-            path: args.path,
-            namespace: "async-tree",
-          }));
-
-          build.onLoad(
-            { filter: /.js$/, namespace: "async-tree" },
-            async (args) => {
-              let path = args.path;
-              // Remove leading "./" if present
-              if (path.startsWith("./")) {
-                path = path.slice(2);
-              }
-              const contents = await Tree.traverse(tree, path);
-              return {
-                contents,
-                loader: "js",
-              };
-            }
-          );
-        },
-      },
-      {
-        name: "local-node-modules",
-
-        setup(build) {
-          build.onResolve({ filter: /^/ }, (args) => ({
-            path: args.path,
-            namespace: "local-node",
-          }));
-
-          build.onLoad(
-            { filter: /^/, namespace: "local-node" },
-            async (args) => {
-              nodeModules ??= await thisScope.get("node_modules");
-              const packageRoot = await Tree.traversePath(
-                nodeModules,
-                args.path
-              );
-              let mainPath = await Tree.traverse(
-                packageRoot,
-                "package.json",
-                "main"
-              );
-              if (mainPath.startsWith("./")) {
-                mainPath = mainPath.slice(2);
-              }
-              const contents = await Tree.traversePath(packageRoot, mainPath);
-              return {
-                contents,
-                loader: "js",
-              };
-            }
-          );
-        },
-      },
-    ],
+    plugins: [asyncTreeFilesPlugin(localTree), projectNodeModulesPlugin(this)],
   });
 
   return built.outputFiles[0].text;
+}
+
+// Loads files from the given tree
+function asyncTreeFilesPlugin(localTree) {
+  // Local imports are defined to be the inverse of package imports. Per the
+  // rules at https://esbuild.github.io/api/#packages, local imports must start
+  // with `/`, `./`, or `../`. Everything else is considered a package import.
+  const localImportRegex = /^\.?\.?\//;
+
+  return {
+    name: "async-tree-files",
+
+    setup(build) {
+      build.onResolve({ filter: localImportRegex }, ({ path, pluginData }) => ({
+        path,
+        pluginData,
+        namespace: "async-tree-url",
+      }));
+
+      build.onLoad(
+        { filter: localImportRegex, namespace: "async-tree-url" },
+        async (args) => {
+          let path = args.path;
+          // Remove leading "./" if present
+          if (path.startsWith("./")) {
+            path = path.slice(2);
+          }
+          const tree = args.pluginData?.tree ?? localTree;
+          const contents = await Tree.traverse(tree, path);
+          return {
+            contents,
+            loader: "js",
+          };
+        }
+      );
+    },
+  };
+}
+
+// Resolves package imports using the project's local node-modules
+function projectNodeModulesPlugin(context) {
+  const contextScope = context ? scope(context) : null;
+
+  // We don't handle imports that start with a built-in namespace like `node:`
+  // or `file:`.
+  const builtinNamespaceRegex = /^[a-z]+:/;
+
+  let nodeModules;
+  return {
+    name: "project-node-modules",
+
+    setup(build) {
+      build.onResolve(
+        { filter: /^/, namespace: "async-tree-url" },
+        ({ path }) =>
+          builtinNamespaceRegex.test(path)
+            ? null
+            : {
+                path,
+                namespace: "project-node-modules-url",
+              }
+      );
+
+      build.onLoad(
+        { filter: /^/, namespace: "project-node-modules-url" },
+        async (args) => {
+          nodeModules ??= await contextScope.get("node_modules");
+          const packageRoot = await Tree.traversePath(nodeModules, args.path);
+          const buffer = await packageRoot.get("package.json");
+          const json = toString(buffer);
+          const data = JSON.parse(json);
+          let mainPath = data.main ?? "index.js";
+          if (mainPath.startsWith("./")) {
+            mainPath = mainPath.slice(2);
+          }
+          const contents = await Tree.traversePath(packageRoot, mainPath);
+          return {
+            contents,
+            loader: "js",
+            pluginData: {
+              tree: packageRoot,
+            },
+          };
+        }
+      );
+    },
+  };
 }

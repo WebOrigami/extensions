@@ -8,6 +8,9 @@
     "@weborigami/language": "0.2.6",
     "esbuild": "0.24.2"
   },
+  "devDependencies": {
+    "mjs-example": "1.0.2"
+  },
   "scripts": {
     "test": "node --test --test-reporter=spec"
   }
