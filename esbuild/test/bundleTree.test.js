@@ -19,7 +19,7 @@ describe("bundleTree", () => {
       },
       "app.js"
     );
-    assert(result.length > 0);
+    assert(result.includes("Hello, world!"));
   });
 
   test("resolves node paths using project's node_modules", async () => {
@@ -40,16 +40,16 @@ describe("bundleTree", () => {
     assert(result.includes("Hello world!"));
   });
 
-  // test("infers an entry point if none is provided", async () => {
-  //   const result = await bundleTree({
-  //     "app.js": `
-  //         import message from "./hello.js";
-  //         console.log(message);
-  //       `,
-  //     "hello.js": `
-  //         export default "Hello, world!";
-  //       `,
-  //   });
-  //   assert(result.length > 0);
-  // });
+  test("creates a default entry point if none is provided", async () => {
+    const result = await bundleTree({
+      "app.js": `
+          import message from "./hello.js";
+          console.log(message);
+        `,
+      "hello.js": `
+          export default "Hello, world!";
+        `,
+    });
+    assert(result.includes("Hello, world!"));
+  });
 });

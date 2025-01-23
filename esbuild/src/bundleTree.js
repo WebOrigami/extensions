@@ -1,6 +1,8 @@
 import { scope, toString, Tree } from "@weborigami/async-tree";
 import { build } from "esbuild";
 
+const syntheticEntryPoint = "./__entryPoint__.js";
+
 /**
  *
  * @param {import("@weborigami/async-tree").Treelike} treelike
@@ -11,7 +13,7 @@ export default async function bundleTree(treelike, entryPoints) {
   const localTree = await Tree.from(treelike);
 
   if (entryPoints === undefined) {
-    entryPath = "*";
+    entryPoints = [syntheticEntryPoint];
   } else if (typeof entryPoints === "string") {
     entryPoints = [entryPoints];
   }
@@ -52,6 +54,14 @@ function asyncTreeFilesPlugin(localTree) {
       build.onLoad(
         { filter: localImportRegex, namespace: "async-tree-url" },
         async (args) => {
+          // Special case for synthetic entry point
+          if (args.path === syntheticEntryPoint) {
+            return {
+              contents: await importAllJs(localTree),
+              loader: "js",
+            };
+          }
+
           let path = args.path;
           // Remove leading "./" if present
           if (path.startsWith("./")) {
@@ -67,6 +77,14 @@ function asyncTreeFilesPlugin(localTree) {
       );
     },
   };
+}
+
+// Return a synthetic module importing all .js files in the tree's top level
+async function importAllJs(tree) {
+  const keys = Array.from(await tree.keys());
+  const jsKeys = keys.filter((key) => key.endsWith(".js"));
+  const imports = jsKeys.map((key) => `import "./${key}";`).join("\n");
+  return imports;
 }
 
 // Resolves package imports using the project's local node-modules
