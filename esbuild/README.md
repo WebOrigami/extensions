@@ -1,4 +1,6 @@
-This [Origami](https://weborigami) package provides a way to bundle JavaScript resources with [esbuild](https://esbuild.github.io/). This effectively turns esbuild into a function:
+This [Origami](https://weborigami) package provides a way to bundle JavaScript
+and TypeScript resources with [esbuild](https://esbuild.github.io/). This
+effectively turns esbuild into a function:
 
 ```
 esbuild(tree) → bundles
@@ -34,10 +36,12 @@ In a situation like this, `esbuild` will return multiple files. The Origami `...
 
 Because Origami treats all trees equally, you can use Origami's many [tree operations](https://weborigami.org/builtins/tree) to compose, filter, or otherwise organize the input files before passing them to `esbuild`.
 
-You can also obtain the tree of JavaScript from other locations. For example, [js.yaml](./demo/js.yaml) demonstrates a tiny set of JavaScript modules defined in a YAML file. This could be passed to the `esbuild` function directly:
+You can also obtain the tree of JavaScript or TypeScript from other locations. For example, [js.yaml](./demo/js.yaml) demonstrates a tiny set of JavaScript modules defined in a YAML file. This could be passed to the `esbuild` function directly:
 
 ```ori
 {
   index.js: package@weborigami/esbuild(js.yaml)
 }
 ```
+
+Similarly, the [ts.yaml](./demo/ts.yaml) file can be substituted to show the bundling of TypeScript files.

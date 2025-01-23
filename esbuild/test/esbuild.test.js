@@ -68,4 +68,17 @@ describe("esbuild", () => {
     );
     assert(result["hello.js"].includes("Hello, world!"));
   });
+
+  test("can bundle TypeScript", async () => {
+    const result = await esbuild({
+      "app.ts": `
+        import message from "./hello.ts";
+        console.log(message);
+      `,
+      "hello.ts": `
+        export default "Hello, world!";
+      `,
+    });
+    assert(result.includes("Hello, world!"));
+  });
 });

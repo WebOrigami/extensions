@@ -70,13 +70,13 @@ function asyncTreeFilesPlugin(localTree) {
       build.onLoad(
         { filter: localImportRegex, namespace: "async-tree-url" },
         async (args) => {
-          let path = args.path;
+          let filePath = args.path;
           // Remove leading "./" if present
-          if (path.startsWith("./")) {
-            path = path.slice(2);
+          if (filePath.startsWith("./")) {
+            filePath = filePath.slice(2);
           }
           const tree = args.pluginData?.tree ?? localTree;
-          let contents = await Tree.traverse(tree, path);
+          let contents = await Tree.traverse(tree, filePath);
 
           // Special case for synthetic entry point
           if (contents === undefined && args.path === defaultEntryPoint) {
@@ -85,6 +85,7 @@ function asyncTreeFilesPlugin(localTree) {
 
           return {
             contents,
+            loader: loader(filePath),
           };
         }
       );
@@ -100,6 +101,27 @@ async function allImports(tree) {
   );
   const imports = sourceKeys.map((key) => `import "./${key}";`).join("\n");
   return imports;
+}
+
+// esbuild should normally provide default loaders based on extension, but does
+// not appear to do this for virtual files. We attempt to replicate esbuild's
+// mapping here.
+function loader(filePath) {
+  const loaders = {
+    ".cjs": "js",
+    ".css": "css",
+    ".cts": "ts",
+    ".js": "js",
+    ".json": "json",
+    ".jsx": "jsx",
+    ".mjs": "js",
+    ".mts": "ts",
+    ".ts": "ts",
+    ".tsx": "tsx",
+    ".txt": "text",
+  };
+  const extname = path.extname(filePath);
+  return loaders[extname];
 }
 
 // Resolves package imports using the project's local node-modules
