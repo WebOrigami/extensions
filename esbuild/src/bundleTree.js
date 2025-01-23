@@ -1,5 +1,6 @@
 import { scope, toString, Tree } from "@weborigami/async-tree";
 import { build } from "esbuild";
+import path from "node:path";
 
 const syntheticEntryPoint = "./__entryPoint__.js";
 
@@ -27,11 +28,22 @@ export default async function bundleTree(treelike, entryPoints) {
     bundle: true,
     entryPoints,
     format: "esm",
-    write: false,
+    outdir: "out",
     plugins: [asyncTreeFilesPlugin(localTree), projectNodeModulesPlugin(this)],
+    write: false,
   });
 
-  return built.outputFiles[0].text;
+  const outputFiles = built.outputFiles;
+  if (outputFiles.length === 1) {
+    return outputFiles[0].text;
+  }
+
+  // Create an object to represent the output tree
+  const entries = outputFiles.map((file) => [
+    path.basename(file.path),
+    file.text,
+  ]);
+  return Object.fromEntries(entries);
 }
 
 // Loads files from the given tree

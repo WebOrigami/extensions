@@ -52,4 +52,20 @@ describe("bundleTree", () => {
     });
     assert(result.includes("Hello, world!"));
   });
+
+  test("multiple entry points returns tree", async () => {
+    const result = await bundleTree(
+      {
+        "app.js": `
+          import message from "./hello.js";
+          console.log(message);
+        `,
+        "hello.js": `
+          export default "Hello, world!";
+        `,
+      },
+      ["app.js", "hello.js"]
+    );
+    assert(result["hello.js"].includes("Hello, world!"));
+  });
 });
