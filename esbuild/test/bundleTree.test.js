@@ -17,7 +17,7 @@ describe("bundleTree", () => {
           export default "Hello, world!";
         `,
       },
-      "app.js"
+      { entryPoints: "app.js" }
     );
     assert(result.includes("Hello, world!"));
   });
@@ -34,7 +34,7 @@ describe("bundleTree", () => {
           console.log(hello);
         `,
       },
-      "app.js"
+      { entryPoints: "app.js" }
     );
     // Confirm the import was resolved by looking for an expected string
     assert(result.includes("Hello world!"));
@@ -64,7 +64,7 @@ describe("bundleTree", () => {
           export default "Hello, world!";
         `,
       },
-      ["app.js", "hello.js"]
+      { entryPoints: ["app.js", "hello.js"] }
     );
     assert(result["hello.js"].includes("Hello, world!"));
   });

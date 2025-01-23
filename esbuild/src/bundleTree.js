@@ -2,19 +2,20 @@ import { scope, toString, Tree } from "@weborigami/async-tree";
 import { build } from "esbuild";
 import path from "node:path";
 
-const syntheticEntryPoint = "./__entryPoint__.js";
+const defaultEntryPoint = "./main.js";
 
 /**
  *
  * @param {import("@weborigami/async-tree").Treelike} treelike
- * @param {string|undefined} entryPath
+ * @param {any} options
  * @returns
  */
-export default async function bundleTree(treelike, entryPoints) {
+export default async function bundleTree(treelike, options) {
   const localTree = await Tree.from(treelike);
 
+  let { entryPoints, sourcemap } = options ?? {};
   if (entryPoints === undefined) {
-    entryPoints = [syntheticEntryPoint];
+    entryPoints = [defaultEntryPoint];
   } else if (typeof entryPoints === "string") {
     entryPoints = [entryPoints];
   }
@@ -30,6 +31,7 @@ export default async function bundleTree(treelike, entryPoints) {
     format: "esm",
     outdir: "out",
     plugins: [asyncTreeFilesPlugin(localTree), projectNodeModulesPlugin(this)],
+    sourcemap,
     write: false,
   });
 
@@ -66,21 +68,19 @@ function asyncTreeFilesPlugin(localTree) {
       build.onLoad(
         { filter: localImportRegex, namespace: "async-tree-url" },
         async (args) => {
-          // Special case for synthetic entry point
-          if (args.path === syntheticEntryPoint) {
-            return {
-              contents: await importAllJs(localTree),
-              loader: "js",
-            };
-          }
-
           let path = args.path;
           // Remove leading "./" if present
           if (path.startsWith("./")) {
             path = path.slice(2);
           }
           const tree = args.pluginData?.tree ?? localTree;
-          const contents = await Tree.traverse(tree, path);
+          let contents = await Tree.traverse(tree, path);
+
+          // Special case for synthetic entry point
+          if (contents === undefined && args.path === defaultEntryPoint) {
+            contents = await importAllJs(localTree);
+          }
+
           return {
             contents,
             loader: "js",
