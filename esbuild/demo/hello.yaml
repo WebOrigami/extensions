@@ -1,5 +1,0 @@
-app.js: |
-  import message from "./hello.js";
-  console.log(message);
-hello.js: |
-  export default "Hello, world!";

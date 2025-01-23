@@ -1,0 +1,11 @@
+# This file is an alternative way to represent the demo's JS files to illustrate
+# how you can bundle resources from anywhere. You can change the site.ori to use
+# this file by changing the `js` folder reference to `js.yaml`. The result will
+# be the same.
+
+app.js: |
+  import message from "./hello.js";
+  console.log(message);
+
+hello.js: |
+  export default "Hello, world!";

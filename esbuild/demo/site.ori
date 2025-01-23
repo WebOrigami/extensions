@@ -1,0 +1,7 @@
+{
+  index.html
+  // Because this demo project sits inside the esbuild extension repo, we have
+  // to reference the extension's esbuild.js function directly. In a typical
+  // project you would call `package:@weborigami/esbuild(js)` instead.
+  main.js: src/esbuild.js(js)
+}

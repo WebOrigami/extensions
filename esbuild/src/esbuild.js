@@ -2,7 +2,7 @@ import { scope, toString, Tree } from "@weborigami/async-tree";
 import { build } from "esbuild";
 import path from "node:path";
 
-const defaultEntryPoint = "./main.js";
+const defaultEntryPoint = "./index.js";
 
 /**
  *
@@ -10,14 +10,12 @@ const defaultEntryPoint = "./main.js";
  * @param {any} options
  * @returns
  */
-export default async function bundleTree(treelike, options) {
+export default async function esbuild(treelike, options = {}) {
   const localTree = await Tree.from(treelike);
 
-  let { entryPoints, sourcemap } = options ?? {};
+  let { entryPoints } = options;
   if (entryPoints === undefined) {
     entryPoints = [defaultEntryPoint];
-  } else if (typeof entryPoints === "string") {
-    entryPoints = [entryPoints];
   }
 
   // Ensure all entry points are relative to the root of the tree
@@ -26,12 +24,16 @@ export default async function bundleTree(treelike, options) {
   );
 
   const built = await build({
-    bundle: true,
+    ...options,
+    bundle: options.bundle ?? true,
     entryPoints,
-    format: "esm",
+    format: options.format ?? "esm",
     outdir: "out",
-    plugins: [asyncTreeFilesPlugin(localTree), projectNodeModulesPlugin(this)],
-    sourcemap,
+    plugins: [
+      ...(options.plugins ?? []),
+      asyncTreeFilesPlugin(localTree),
+      projectNodeModulesPlugin(this),
+    ],
     write: false,
   });
 
@@ -78,12 +80,11 @@ function asyncTreeFilesPlugin(localTree) {
 
           // Special case for synthetic entry point
           if (contents === undefined && args.path === defaultEntryPoint) {
-            contents = await importAllJs(localTree);
+            contents = await allImports(localTree);
           }
 
           return {
             contents,
-            loader: "js",
           };
         }
       );
@@ -91,11 +92,13 @@ function asyncTreeFilesPlugin(localTree) {
   };
 }
 
-// Return a synthetic module importing all .js files in the tree's top level
-async function importAllJs(tree) {
+// Return a synthetic module importing all top-level .js and .ts files
+async function allImports(tree) {
   const keys = Array.from(await tree.keys());
-  const jsKeys = keys.filter((key) => key.endsWith(".js"));
-  const imports = jsKeys.map((key) => `import "./${key}";`).join("\n");
+  const sourceKeys = keys.filter(
+    (key) => key.endsWith(".js") || key.endsWith(".ts")
+  );
+  const imports = sourceKeys.map((key) => `import "./${key}";`).join("\n");
   return imports;
 }
 
@@ -138,7 +141,6 @@ function projectNodeModulesPlugin(context) {
           const contents = await Tree.traversePath(packageRoot, mainPath);
           return {
             contents,
-            loader: "js",
             pluginData: {
               tree: packageRoot,
             },

@@ -2,7 +2,7 @@
   "name": "@weborigami/esbuild",
   "version": "0.0.1",
   "type": "module",
-  "main": "src/bundleTree.js",
+  "main": "src/esbuild.js",
   "dependencies": {
     "@weborigami/async-tree": "0.2.6",
     "@weborigami/language": "0.2.6",
