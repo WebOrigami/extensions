@@ -7,19 +7,23 @@ import { build } from "esbuild";
  * @param {string|undefined} entryPath
  * @returns
  */
-export default async function bundleTree(treelike, entryPath) {
+export default async function bundleTree(treelike, entryPoints) {
   const localTree = await Tree.from(treelike);
 
-  if (entryPath === undefined) {
+  if (entryPoints === undefined) {
     entryPath = "*";
-  } else if (!entryPath.startsWith("./")) {
-    // Ensure that the entry path is relative to the root of the tree
-    entryPath = `./${entryPath}`;
+  } else if (typeof entryPoints === "string") {
+    entryPoints = [entryPoints];
   }
+
+  // Ensure all entry points are relative to the root of the tree
+  entryPoints = entryPoints.map((entryPoint) =>
+    entryPoint.startsWith("./") ? entryPoint : `./${entryPoint}`
+  );
 
   const built = await build({
     bundle: true,
-    entryPoints: [entryPath],
+    entryPoints,
     format: "esm",
     write: false,
     plugins: [asyncTreeFilesPlugin(localTree), projectNodeModulesPlugin(this)],

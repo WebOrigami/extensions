@@ -25,6 +25,7 @@ describe("bundleTree", () => {
   test("resolves node paths using project's node_modules", async () => {
     const rootPath = path.resolve(fileURLToPath(import.meta.url), "../../");
     const rootFiles = new FileTree(rootPath);
+    // The app.js references a sample module in devDependencies
     const result = await bundleTree.call(
       rootFiles,
       {
@@ -38,4 +39,17 @@ describe("bundleTree", () => {
     // Confirm the import was resolved by looking for an expected string
     assert(result.includes("Hello world!"));
   });
+
+  // test("infers an entry point if none is provided", async () => {
+  //   const result = await bundleTree({
+  //     "app.js": `
+  //         import message from "./hello.js";
+  //         console.log(message);
+  //       `,
+  //     "hello.js": `
+  //         export default "Hello, world!";
+  //       `,
+  //   });
+  //   assert(result.length > 0);
+  // });
 });
