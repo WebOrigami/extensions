@@ -6,7 +6,7 @@ After installing via npm, in the root of your Origami project create a `config.o
 
 ```
 {
-  zip_handler = package:@weborigami/zip/zip_handler
+  zip.handler = package:@weborigami/zip
 }
 ```
 

@@ -39,6 +39,9 @@ export default async function tsc(treelike, options) {
   const program = ts.createProgram(paths, options, treeHost);
   program.emit();
 
+  // Need to figure out how to report diagnostics
+  // const diagnostics = ts.getPreEmitDiagnostics(program);
+
   const dist = await Tree.traversePath(treeHost, outDir);
   dist.parent = this;
   return dist;

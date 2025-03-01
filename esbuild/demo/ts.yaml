@@ -1,0 +1,12 @@
+# As with js.yaml, we can load TypeScript files as well from any tree. You can
+# change the site.ori to use this file by changing the `js` folder reference to
+# `ts.yaml`. The result will be the same.
+
+app.ts: |
+  import greet from "./hello.ts";
+  console.log(greet("world"));
+
+hello.ts: |
+  export default function greet(name: string) {
+    return `Hello, ${name}!`;
+  }

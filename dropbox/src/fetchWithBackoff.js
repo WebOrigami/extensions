@@ -12,13 +12,26 @@ const baseDelaySeconds = 1;
  */
 export default async function fetchWithBackoff(url, options) {
   for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
-    const response = await fetch(url, options);
-    if (response.status !== 429) {
-      return response;
+    let response;
+    try {
+      response = await fetch(url, options);
+      if (response.status !== 429) {
+        // 429 Too Many Requests
+        return response;
+      }
+    } catch (error) {
+      // Network error, warn and retry
+      console.warn(`Warning: ${error.message}`);
+      console.warn(url);
+      console.warn(JSON.stringify(options));
     }
+
     // Wait and retry
-    const retryAfterSeconds =
-      parseInt(response.headers.get("Retry-After")) || baseDelaySeconds;
+    let retryAfterSeconds = baseDelaySeconds;
+    if (response?.headers?.get("Retry-After")) {
+      retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
+    }
+
     // Use exponential backoff with jitter to avoid thundering herd problem
     const jitter = Math.random();
     const backoffSeconds = jitter * Math.pow(2, retryCount);

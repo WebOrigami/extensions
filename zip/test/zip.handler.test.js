@@ -3,7 +3,7 @@ import Zip from "adm-zip";
 import assert from "node:assert";
 import fs from "node:fs/promises";
 import { describe, test } from "node:test";
-import zipHandler from "../src/zip_handler.js";
+import zipHandler from "../src/zip.handler.js";
 
 describe("ZIP handler", () => {
   test("creates a ZIP file as Buffer", async () => {

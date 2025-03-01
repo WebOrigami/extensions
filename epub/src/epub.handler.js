@@ -1,5 +1,5 @@
 import { Tree } from "@weborigami/async-tree";
-import zipHandler from "./zip_handler.js";
+import zipHandler from "@weborigami/zip";
 
 /**
  * Handler for EPUB files

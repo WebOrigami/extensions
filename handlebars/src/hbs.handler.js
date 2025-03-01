@@ -1,4 +1,9 @@
-import { scope, toPlainValue, toString } from "@weborigami/async-tree";
+import {
+  isUnpackable,
+  scope,
+  toPlainValue,
+  toString,
+} from "@weborigami/async-tree";
 import Handlebars from "handlebars";
 
 /**
@@ -19,6 +24,9 @@ export default {
     }
     const templateFn = Handlebars.compile(template);
     const fn = async (input) => {
+      if (isUnpackable(input)) {
+        input = await input.unpack();
+      }
       const data = input ? await toPlainValue(input) : null;
       return templateFn(data, { partials });
     };
