@@ -1,15 +1,33 @@
-import { Tree } from "@weborigami/async-tree";
-import Ajv from "ajv";
+import { isUnpackable, Tree } from "@weborigami/async-tree";
 
-export default async function validator(schemaTreelike) {
+// Uses 2020 draft JSON Schema, contains breaking changes from earlier drafts
+import Ajv from "ajv/dist/2020.js";
+
+/**
+ * Return a validator function that validates input data against the given
+ * schema. The returned function returns the input data if valid, and throws an
+ * exception if the data is invalid.
+ *
+ * @typedef {import("@weborigami/async-tree").AsyncTree} AsyncTree
+ * @typedef {import("@weborigami/async-tree").Treelike} Treelike
+ *
+ * @this {AsyncTree|null}
+ * @param {Treelike} schemaTreelike
+ * @param {any} [options]
+ * @returns {function}
+ */
+export default async function validator(schemaTreelike, options) {
+  const context = this;
+
   const schema = await Tree.plain(schemaTreelike);
-  const ajv = new Ajv();
-  const validate = ajv.compile(schema);
+  const loadSchema = async (uri) => getSchema(context, uri);
+  const ajv = new Ajv(Object.assign({ loadSchema }, options));
+  const validate = await ajv.compileAsync(schema);
 
   return async (dataTree, key) => {
     // If the input tree contains unpacked files, unpack them
     const unpacked = await Tree.map(dataTree, async (item) =>
-      typeof item === "object" && "unpack" in item ? await item.unpack() : item
+      isUnpackable(item) ? await item.unpack() : item
     );
 
     // Resolve to an in-memory object and validate
@@ -59,4 +77,23 @@ function getInstance(data, instancePath) {
     }
   }
   return current;
+}
+
+async function getSchema(context, uri) {
+  if (!context) {
+    return null;
+  }
+  const keys = uri.split("/");
+  if (keys[0]?.endsWith(":")) {
+    // Protocol like `https:`, don't handle
+    return null;
+  }
+  if (keys[0] === "#" || keys[0] === ".") {
+    keys.shift();
+  }
+  let schema = await Tree.traverseOrThrow(context, ...keys);
+  if (isUnpackable(schema)) {
+    schema = await schema.unpack();
+  }
+  return schema;
 }

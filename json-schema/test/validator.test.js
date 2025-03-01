@@ -59,7 +59,38 @@ describe("validator", () => {
     await assert.rejects(
       () => validate(markdown, "markdown"),
       new Error(
-        "Validation failed:\nmarkdown: must NOT have additional properties"
+        "Validation failed:\nmarkdown: must NOT have additional properties (bad.txt)"
+      )
+    );
+  });
+
+  test("can reference other schemas in context with $ref", async () => {
+    const context = {
+      "user.json": {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          age: { type: "number" },
+        },
+        required: ["name"],
+      },
+      "users.json": {
+        type: "array",
+        items: {
+          $ref: "./user.json",
+        },
+      },
+    };
+    const schema = {
+      $ref: "./users.json",
+    };
+    const validate = await validator.call(context, schema);
+    const valid = await validate([{ name: "Alice", age: 30 }]);
+    assert(valid);
+    await assert.rejects(
+      () => validate([{ age: 30 }]),
+      new Error(
+        `Validation failed:\n/0: must have required property 'name': {"age":30}`
       )
     );
   });
