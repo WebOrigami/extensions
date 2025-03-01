@@ -1,15 +1,23 @@
 import { Tree } from "@weborigami/async-tree";
 import Ajv from "ajv";
 
-export default async function validator(treelike) {
-  const schema = await Tree.plain(treelike);
+export default async function validator(schemaTreelike) {
+  const schema = await Tree.plain(schemaTreelike);
   const ajv = new Ajv();
   const validate = ajv.compile(schema);
 
-  return async (value, key) => {
-    const data = await Tree.plain(value);
+  return async (dataTree, key) => {
+    // If the input tree contains unpacked files, unpack them
+    const unpacked = await Tree.map(dataTree, async (item) =>
+      typeof item === "object" && "unpack" in item ? await item.unpack() : item
+    );
+
+    // Resolve to an in-memory object and validate
+    const data = await Tree.plain(unpacked);
     const valid = validate(data);
+
     if (!valid) {
+      // Display error messages
       const messages = validate.errors.map((error) => {
         let message = key ? `${key}: ` : "";
         message += error.instancePath ? `${error.instancePath}: ` : "";
@@ -24,7 +32,8 @@ export default async function validator(treelike) {
       });
       throw new Error("Validation failed:\n" + messages.join("\n\n"));
     }
-    return data;
+
+    return dataTree;
   };
 }
 
