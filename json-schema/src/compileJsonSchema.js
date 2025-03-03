@@ -37,14 +37,20 @@ export default async function validator(schemaTreelike, options) {
   );
   const validate = await ajv.compileAsync(schema);
 
-  return async (dataTree, key) => {
-    // If the input tree contains unpacked files, unpack them
-    const unpacked = await Tree.map(dataTree, async (item) =>
-      isUnpackable(item) ? await item.unpack() : item
-    );
+  return async (input, key) => {
+    let data;
+    if (Tree.isTreelike(input)) {
+      // If the input is a tree, unpack any packed values
+      const unpacked = await Tree.map(input, async (item) =>
+        isUnpackable(item) ? await item.unpack() : item
+      );
+      // Resolve to an in-memory object
+      data = await Tree.plain(unpacked);
+    } else {
+      data = input;
+    }
 
-    // Resolve to an in-memory object and validate
-    const data = await Tree.plain(unpacked);
+    // Apply the validation function
     const valid = validate(data);
 
     if (!valid) {
@@ -73,7 +79,7 @@ export default async function validator(schemaTreelike, options) {
       throw new Error(text);
     }
 
-    return dataTree;
+    return input;
   };
 }
 
