@@ -37,9 +37,7 @@ describe("validator", () => {
     const input = { age: 30 };
     await assert.rejects(
       () => validate(input, "foo.json"),
-      new Error(
-        "Validation failed:\nfoo.json: must have required property 'name'"
-      )
+      new Error("foo.json: must have required property 'name'")
     );
   });
 
@@ -58,9 +56,7 @@ describe("validator", () => {
     const validate = await validator(schema);
     await assert.rejects(
       () => validate(markdown, "markdown"),
-      new Error(
-        "Validation failed:\nmarkdown: must NOT have additional properties (bad.txt)"
-      )
+      new Error("markdown: must NOT have additional properties (bad.txt)")
     );
   });
 
@@ -89,9 +85,7 @@ describe("validator", () => {
     assert(valid);
     await assert.rejects(
       () => validate([{ age: 30 }]),
-      new Error(
-        `Validation failed:\n/0: must have required property 'name': {"age":30}`
-      )
+      new Error(`/0: must have required property 'name': {"age":30}`)
     );
   });
 });
