@@ -55,11 +55,11 @@ You can edit the posts to introduce an error. For example, if you create a file 
 ```console
 $ ori posts.ori/
 Error:
-must NOT have additional properties (foo)
+must NOT have additional properties (foo.txt)
     at OrigamiFiles.<anonymous>…
 ```
 
-This indicates that the `posts` folder has an additional "property" (a file) whose name `foo` doesn't comply with the expected `.md` file name format.
+This indicates that the `posts` folder has an additional "property" (a file) whose name `foo.txt` doesn't comply with the expected `.md` file name format.
 
 The validated `posts.ori` data can then be transformed via other Origami expressions into HTML, feeds, etc.
 
