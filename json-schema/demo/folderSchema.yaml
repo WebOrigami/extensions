@@ -8,10 +8,15 @@
 #
 # This is in JSON Schema format but written in YAML for readability
 
+# The posts folder will appear to the validator as an object
 type: object
-additionalProperties: false # No other files allowed in posts folder
+
+# A pattern property is a schema applied to object keys (here, file names)
 patternProperties:
-  # File names should end in .md
+  # File names in the posts folder must end in a `.md` extension
   "\\.md$":
-    # Apply the post schema to the markdown files
+    # The value (the markdown content) must comply with our post schema
     $ref: ./postSchema.yaml
+
+# No other types of property (file) names are allowed in the posts folder
+additionalProperties: false

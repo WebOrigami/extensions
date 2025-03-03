@@ -2,9 +2,10 @@ This [Origami](https://weborigami.org) extension validates that the data for you
 
 This extension relies on the [AJV JSON schema validator](https://ajv.js.org) to interpret the JSON Schema and validate the data. Origami and this extension augment what is possible with validators like AJV so that you can:
 
-- Store your schema anywhere
-- Define your schema other formats like YAML
-- Validate any treelike structure, including the file system or cloud storage containers
+- Validate any treelike structure, including folders in the the file system or cloud storage containers.
+- Define your schema in other formats like YAML.
+- Define your schema anywhere, not just the file system.
+- Schemas can be dynamically generated.
 
 ## Installation
 
@@ -33,13 +34,15 @@ Rule #1 is implemented in [folderSchema.yaml](./demo/folderSchema.yaml). This us
 
 Note that, because Origami treats all treelike structures equally, you can write JSON Schema in YAML or other formats for readability.
 
-To apply the folder schema to the `posts` folder, you can write an Origami expression:
+To apply the folder schema to the `posts` folder, you can write an Origami expression that proceeds in the two steps outlined above: it turns the schema into a function, then applies that function to the data (here, a folder).
 
 ```
 package:@weborigami/json-schema(folderSchema.yaml)(posts)
 ```
 
-This expression can be saved in an Origami file `posts.ori`. (Because the demo folder is inside the extension project itself, the demo's [posts.ori](./demo/posts.ori) file must use of a JavaScript helper function.) You can then evaluate that `posts.ori` file:
+This expression can be saved in an Origami file `posts.ori`. (Because the demo folder is inside the extension project itself, the demo's [posts.ori](./demo/posts.ori) file must use of a JavaScript helper function.)
+
+Evaluating `posts.ori` runs the validator:
 
 ```console
 $ cd demo
@@ -57,6 +60,8 @@ must NOT have additional properties (foo)
 ```
 
 This indicates that the `posts` folder has an additional "property" (a file) whose name `foo` doesn't comply with the expected `.md` file name format.
+
+The validated `posts.ori` data can then be transformed via other Origami expressions into HTML, feeds, etc.
 
 ## Options
 
