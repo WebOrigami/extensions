@@ -3,12 +3,12 @@ import assert from "node:assert";
 import path from "node:path";
 import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import validator from "../src/validator.js";
+import compileJsonSchema from "../src/compileJsonSchema.js";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixtures = new FileTree(path.join(dirname, "fixtures"));
 
-describe("validator", () => {
+describe("compileJsonSchema", () => {
   test("returns input data as is if it is valid", async () => {
     const schema = {
       type: "object",
@@ -18,7 +18,7 @@ describe("validator", () => {
       },
       required: ["name"],
     };
-    const validate = await validator(schema);
+    const validate = await compileJsonSchema(schema);
     const input = { name: "Alice", age: 30 };
     const output = await validate(input);
     assert.deepEqual(output, input);
@@ -33,11 +33,11 @@ describe("validator", () => {
       },
       required: ["name"],
     };
-    const validate = await validator(schema);
+    const validate = await compileJsonSchema(schema);
     const input = { age: 30 };
     await assert.rejects(
       () => validate(input, "foo.json"),
-      new Error("foo.json: must have required property 'name'")
+      new Error("\nfoo.json: must have required property 'name'")
     );
   });
 
@@ -53,10 +53,13 @@ describe("validator", () => {
       },
       additionalProperties: false, // Don't allow other file names
     };
-    const validate = await validator(schema);
+    const validate = await compileJsonSchema(schema);
     await assert.rejects(
       () => validate(markdown, "markdown"),
-      new Error("markdown: must NOT have additional properties (bad.txt)")
+      new Error(
+        "\nmarkdown: must NOT have additional properties (bad.txt)" +
+          "\nmarkdown/Alice.md: must be object: Hello, **Alice**!\n"
+      )
     );
   });
 
@@ -80,12 +83,12 @@ describe("validator", () => {
     const schema = {
       $ref: "./users.json",
     };
-    const validate = await validator.call(context, schema);
+    const validate = await compileJsonSchema.call(context, schema);
     const valid = await validate([{ name: "Alice", age: 30 }]);
     assert(valid);
     await assert.rejects(
       () => validate([{ age: 30 }]),
-      new Error(`/0: must have required property 'name': {"age":30}`)
+      new Error(`\n/0: must have required property 'name': {"age":30}`)
     );
   });
 });

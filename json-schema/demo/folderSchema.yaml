@@ -1,0 +1,17 @@
+# Schema for the posts folder
+#
+# This schema enforces these rules:
+#
+# 1. Only files with .md extension are allowed
+# 2. Each markdown file must have a title and a body
+# 3. The title and body must be non-empty strings
+#
+# This is in JSON Schema format but written in YAML for readability
+
+type: object
+additionalProperties: false # No other files allowed in posts folder
+patternProperties:
+  # File names should end in .md
+  "\\.md$":
+    # Apply the post schema to the markdown files
+    $ref: ./postSchema.yaml

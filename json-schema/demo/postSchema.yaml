@@ -1,0 +1,13 @@
+# Schema for the individual posts
+type: object
+additionalProperties: false
+required:
+  - title
+  - "@text"
+properties:
+  title:
+    type: string
+    minLength: 1
+  "@text":
+    type: string
+    minLength: 1

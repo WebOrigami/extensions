@@ -1,0 +1,9 @@
+// Create a validator and use it to validate the posts folder
+//
+// The normal way to call json-schema would be:
+//
+//   package:@weborigami/json-schema(<your schema>)
+//
+// but this demo in the extension project must use a helper function.
+
+json-schema.js(folderSchema.yaml)(posts)
