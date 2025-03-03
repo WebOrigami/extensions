@@ -1,4 +1,4 @@
-import { isUnpackable, Tree } from "@weborigami/async-tree";
+import { isUnpackable, trailingSlash, Tree } from "@weborigami/async-tree";
 
 // Uses 2020 draft JSON Schema, contains breaking changes from earlier drafts
 import Ajv from "ajv/dist/2020.js";
@@ -37,8 +37,16 @@ export default async function validator(schemaTreelike, options) {
     if (!valid) {
       // Display error messages
       const messages = validate.errors.map((error) => {
-        let message = key ? `${key}: ` : "";
-        message += error.instancePath ? `${error.instancePath}: ` : "";
+        let message = "";
+        if (key) {
+          message += trailingSlash.remove(key);
+        }
+        if (error.instancePath) {
+          message += error.instancePath;
+        }
+        if (message.length > 0) {
+          message += ": ";
+        }
         message += error.message;
         if (error.params.additionalProperty) {
           message += ` (${error.params.additionalProperty})`;
@@ -48,7 +56,7 @@ export default async function validator(schemaTreelike, options) {
           : "";
         return message;
       });
-      throw new Error("Validation failed:\n" + messages.join("\n\n"));
+      throw new Error(messages.join("\n\n"));
     }
 
     return dataTree;
