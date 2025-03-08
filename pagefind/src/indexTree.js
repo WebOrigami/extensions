@@ -1,4 +1,4 @@
-import { keysFromPath, Tree } from "@weborigami/async-tree";
+import { keysFromPath, trailingSlash, Tree } from "@weborigami/async-tree";
 import * as pagefind from "pagefind";
 
 const textDecoder = new TextDecoder();
@@ -45,7 +45,7 @@ async function addTreeToIndex(treelike, options) {
   const tree = Tree.from(treelike);
   const { index, basePath } = options;
   for (const key of await tree.keys()) {
-    const path = `${basePath}/${key}`;
+    const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
     if (Tree.isTreelike(value)) {
       await addTreeToIndex(value, { index, basePath: path });
