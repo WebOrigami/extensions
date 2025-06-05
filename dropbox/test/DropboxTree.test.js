@@ -1,7 +1,6 @@
-import { toString, Tree } from "@weborigami/async-tree";
-import { builtinsTree } from "@weborigami/origami";
+import { FileTree, ObjectTree, toString, Tree } from "@weborigami/async-tree";
+import { handlerBuiltins } from "@weborigami/origami";
 import assert from "node:assert";
-import { promises as fs } from "node:fs";
 import { before, describe, test } from "node:test";
 import auth from "../src/auth.js";
 
@@ -9,10 +8,12 @@ describe("DropboxTree", () => {
   let fixture;
 
   before(async () => {
-    const credsPath = new URL("../creds.json", import.meta.url);
-    const creds = JSON.parse(await fs.readFile(credsPath));
-    const scope = builtinsTree;
-    const tree = await auth.call(scope, creds);
+    const projectUrl = new URL("..", import.meta.url);
+    const projectTree = new FileTree(projectUrl);
+    projectTree.handlers = new ObjectTree(handlerBuiltins());
+    const credsBuffer = await projectTree.get("creds.json");
+    const creds = JSON.parse(toString(credsBuffer));
+    const tree = await auth.call(projectTree, creds);
     fixture = await tree.get("Test/");
   });
 
