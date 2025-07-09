@@ -1,4 +1,5 @@
-const maxRetries = 5;
+import { callWithBackoff } from "@weborigami/async-tree";
+
 const baseDelaySeconds = 1;
 
 /**
@@ -11,32 +12,18 @@ const baseDelaySeconds = 1;
  * @param {any} options
  */
 export default async function fetchWithBackoff(url, options) {
-  for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
-    let response;
-    try {
-      response = await fetch(url, options);
-      if (response.status !== 429) {
-        // 429 Too Many Requests
-        return response;
+  return callWithBackoff(
+    () => fetch(url, options),
+    (response) => {
+      if (!response || response.status !== 429) {
+        // No delay needed; response can be returned directly
+        return null;
       }
-    } catch (error) {
-      // Network error, warn and retry
-      console.warn(`Warning: ${error.message}`);
-      console.warn(url);
-      console.warn(JSON.stringify(options));
+      const retryAfterSeconds = response.headers?.get("Retry-After");
+      const delayMs =
+        (retryAfterSeconds ? parseInt(retryAfterSeconds) : baseDelaySeconds) *
+        1000;
+      return delayMs;
     }
-
-    // Wait and retry
-    let retryAfterSeconds = baseDelaySeconds;
-    if (response?.headers?.get("Retry-After")) {
-      retryAfterSeconds = parseInt(response.headers.get("Retry-After"));
-    }
-
-    // Use exponential backoff with jitter to avoid thundering herd problem
-    const jitter = Math.random();
-    const backoffSeconds = jitter * Math.pow(2, retryCount);
-    const delaySeconds = retryAfterSeconds + backoffSeconds;
-    await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
-  }
-  throw new Error("Max retries exceeded");
+  );
 }
