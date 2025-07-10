@@ -2,7 +2,7 @@ This package provides functions for treating a [Dropbox](https://www.dropbox.com
 
 ## Obtaining Dropbox credentials
 
-This extension requires an API key from Google. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a little maze of twisting passages, all different.
+This extension requires an API key from Dropbox. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a little maze of twisting passages, all different.
 
 As of June 2024, the process to obtain a key is roughly:
 
