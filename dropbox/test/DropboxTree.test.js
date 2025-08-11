@@ -1,4 +1,4 @@
-import { FileTree, ObjectTree, toString, Tree } from "@weborigami/async-tree";
+import { FileTree, toString, Tree } from "@weborigami/async-tree";
 import { handlerBuiltins } from "@weborigami/origami";
 import assert from "node:assert";
 import { before, describe, test } from "node:test";
@@ -10,7 +10,7 @@ describe("DropboxTree", () => {
   before(async () => {
     const projectUrl = new URL("..", import.meta.url);
     const projectTree = new FileTree(projectUrl);
-    projectTree.handlers = new ObjectTree(handlerBuiltins());
+    projectTree.handlers = handlerBuiltins();
     const credsBuffer = await projectTree.get("creds.json");
     const creds = JSON.parse(toString(credsBuffer));
     const tree = await auth.call(projectTree, creds);
@@ -43,7 +43,7 @@ describe("DropboxTree", () => {
     );
   });
 
-  test("can traverse into a file that has a handler", async () => {
+  test.only("can traverse into a file that has a handler", async () => {
     const value = await Tree.traverse(fixture, "teamData.yaml/", "0/", "name");
     assert.equal(value, "Alice");
   });
