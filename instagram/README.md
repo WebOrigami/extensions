@@ -1,5 +1,7 @@
 This is a tree driver for the [Instagram Basic Display API](https://developers.facebook.com/docs/instagram-basic-display-api).
 
+**NOTE:** As of August 2025 Instagram's deprecation of the Basic Display API has broken this extension. We hope to eventually restore it using an alternate API.
+
 ## Authentication
 
 Authentication with the Instagram API is even more tiresome than with most services.
