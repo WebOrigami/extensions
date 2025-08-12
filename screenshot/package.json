@@ -4,7 +4,7 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "puppeteer": "22.6.5"
+    "puppeteer": "24.16.1"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
