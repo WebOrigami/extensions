@@ -3,11 +3,11 @@ type: object
 additionalProperties: false
 required:
   - title
-  - "@text"
+  - _body
 properties:
   title:
     type: string
     minLength: 1
-  "@text":
+  _body:
     type: string
     minLength: 1
