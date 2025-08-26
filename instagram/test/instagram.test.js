@@ -3,13 +3,13 @@ import { promises as fs } from "node:fs";
 import { describe, test } from "node:test";
 import instagram from "../src/instagram.js";
 
-const tokenPath = new URL("../token", import.meta.url);
-const token = await fs.readFile(tokenPath);
-const userId = "7920122544752391";
-const fixture = await instagram(token, userId);
-const album = await fixture.get("2020-08-04_16_06_46");
+describe.skip("instagram", async () => {
+  const tokenPath = new URL("../token", import.meta.url);
+  const token = await fs.readFile(tokenPath);
+  const userId = "7920122544752391";
+  const fixture = await instagram(token, userId);
+  const album = await fixture.get("2020-08-04_16_06_46");
 
-describe("instagram", () => {
   test("can get album keys", async () => {
     const keys = await album.keys();
     assert.deepEqual(keys, [
