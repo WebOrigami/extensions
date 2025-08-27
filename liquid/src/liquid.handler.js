@@ -1,46 +1,66 @@
-import { isUnpackable, toPlainValue, toString } from "@weborigami/async-tree";
-import matter from "gray-matter";
+import {
+  isUnpackable,
+  toPlainValue,
+  toString,
+  Tree,
+} from "@weborigami/async-tree";
 import { Liquid } from "liquidjs";
 
-const engine = new Liquid();
-// jekyll post_url engine
-// TODO: generate the correct url
-engine.registerTag("post_url", {
-  parse(tagToken) {
-    this.value = tagToken.args;
-  },
-  *render(ctx) {
-    return this.value;
-  },
-});
-
-console.error("loading, running");
 export default {
-  // mediaType: 'text/liquid',
+  mediaType: "text/plain",
+
   /** @type {import("@weborigami/language").UnpackFunction} */
   async unpack(packed, options = {}) {
-    const templateDocument = toString(packed);
+    // If a parent was supplied, provide a virtual file system for it
+    const liquidOptions = options.parent
+      ? { fs: liquidFs(options.parent) }
+      : {};
+    const engine = new Liquid(liquidOptions);
 
-    // TODO: partials
-    console.error("temp", templateDocument, options);
-
-    const templateWithData = matter(templateDocument);
-    console.error("data:", templateWithData);
-
-    const parsedTemplate = engine.parse(templateWithData.content);
-    // const parsedTemplate = engine.parse(templateDocument);
+    const text = toString(packed);
+    const templateFn = engine.parse(text);
 
     return async (input) => {
-      console.error("data -----------");
-      // console.dir(data, { depth: 1,  });
-      if (isUnpackable(input)) input = await input.unpack();
+      if (isUnpackable(input)) {
+        input = await input.unpack();
+      }
       const data = input ? await toPlainValue(input) : null;
-      return engine.renderSync(parsedTemplate, data);
-      // does this help me?
-      // return {
-      //   ...templateWithData.data,
-      //   '_body': engine.renderSync(parsedTemplate, data)
-      // }
+      return engine.render(templateFn, data);
     };
   },
 };
+
+// Return a Liquid virtual file system backed by the given tree.
+// See https://liquidjs.com/api/interfaces/FS.html
+function liquidFs(treelike) {
+  const tree = Tree.from(treelike);
+  return {
+    // TODO
+    contains(root, file) {
+      return true;
+    },
+
+    // TODO
+    dirname(filePath) {
+      debugger;
+      return filePath.substring(0, filePath.lastIndexOf("/"));
+    },
+
+    // TODO
+    async exists(filePath) {
+      return true;
+    },
+
+    async readFile(filePath) {
+      const value = await tree.get(filePath);
+      return value ? toString(value) : undefined;
+    },
+
+    // TODO
+    resolve(dir, file, ext) {
+      return file;
+    },
+
+    sep: "/",
+  };
+}

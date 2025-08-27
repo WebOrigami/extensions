@@ -1,0 +1,11 @@
+countries:
+  - name: France
+    flag: 🇫🇷
+  - name: Greece
+    flag: 🇬🇷
+  - name: Italy
+    flag: 🇮🇹
+  - name: Portugal
+    flag: 🇵🇹
+  - name: Spain
+    flag: 🇪🇸
