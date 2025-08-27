@@ -1,0 +1,14 @@
+{
+  "name": "@weborigami/liquid",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/liquid.handler.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.5.1",
+    "liquidjs": "10.21.1"
+  },
+  "scripts": {
+    "demo": "ori serve watch demos, =debug demos/aboutUs/site.ori",
+    "test": "node --test --test-reporter=spec"
+  }
+}
