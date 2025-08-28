@@ -21,4 +21,29 @@ describe("Liquid extension handler", () => {
     const result = await fn({ name: "world" });
     assert.equal(result, "Hello, <strong>world</strong>!");
   });
+
+  test("makes front matter available as `layout` property", async () => {
+    const template = `---
+title: Home
+---
+<h1>{{ layout.title }}</h1>`;
+    const fn = await liquidHandler.unpack(template);
+    const result = await fn();
+    assert.equal(result, "<h1>Home</h1>");
+  });
+
+  test("can invoke a base template indicated by the `layout` front matter property", async () => {
+    const parent = new ObjectTree({
+      "base.liquid": `<html><body>{{ content }}</body></html>`,
+    });
+    const template = `---
+layout: base
+---
+<h1>Hello, {{ name }}!</h1>`;
+    const fn = await liquidHandler.unpack(template, {
+      parent,
+    });
+    const result = await fn({ name: "world" });
+    assert.equal(result, "<html><body><h1>Hello, world!</h1></body></html>");
+  });
 });
