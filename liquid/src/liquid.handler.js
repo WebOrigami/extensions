@@ -1,7 +1,12 @@
-import { isUnpackable, toPlainValue, toString } from "@weborigami/async-tree";
+import {
+  getParent,
+  isUnpackable,
+  toPlainValue,
+  toString,
+  Tree,
+} from "@weborigami/async-tree";
 import { Liquid } from "liquidjs";
 import * as YAMLModule from "yaml";
-import getParent from "./getParent.js";
 
 // The "yaml" package doesn't seem to provide a default export that the browser can
 // recognize, so we have to handle two ways to accommodate Node and the browser.
@@ -71,15 +76,20 @@ function unpack(packed, options = {}) {
     let result = await engine.render(templateFn, data);
 
     if (layoutData?.layout) {
-      // Wrap result in base template
-      let baseTemplateName = layoutData.layout;
-      if (!baseTemplateName.endsWith(".liquid")) {
-        baseTemplateName += ".liquid";
+      if (!parent) {
+        throw new Error(
+          `A Liquid template layout without a parent folder can't load a base layout like "${baseTemplatePath}".`
+        );
       }
-      const layoutTemplate = await parent.get(baseTemplateName);
+      // Wrap result in base template
+      let baseTemplatePath = layoutData.layout;
+      if (!baseTemplatePath.endsWith(".liquid")) {
+        baseTemplatePath += ".liquid";
+      }
+      const layoutTemplate = await Tree.traversePath(parent, baseTemplatePath);
       if (!layoutTemplate) {
         throw new Error(
-          `A Liquid template layout references "${baseTemplateName}", but that file can't be found.`
+          `A Liquid template layout references "${baseTemplatePath}", but that file can't be found.`
         );
       }
       const layoutFn = unpack(layoutTemplate);
