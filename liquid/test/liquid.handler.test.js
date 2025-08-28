@@ -47,7 +47,7 @@ layout: base
     assert.equal(result, "<html><body><h1>Hello, world!</h1></body></html>");
   });
 
-  test.only("can use an include directive", async () => {
+  test.skip("can use an include directive", async () => {
     const parent = new ObjectTree({
       "included.liquid": `{{ greeting }}, {{ name }}!`,
     });

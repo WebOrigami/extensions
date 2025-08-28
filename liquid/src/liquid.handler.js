@@ -14,6 +14,48 @@ import * as YAMLModule from "yaml";
 // @ts-ignore
 const YAML = YAMLModule.default ?? YAMLModule.YAML;
 
+/**
+ * Wrap the compiled template function to handle the parsing of input, the
+ * inclusion of layout data, and the invocation of any base layout template.
+ */
+function wrapTemplateFunction(engine, parent, templateFn, layoutData) {
+  return async (input) => {
+    if (isUnpackable(input)) {
+      input = await input.unpack();
+    }
+    const inputData = input ? await toPlainValue(input) : {};
+    const data = layoutData ? { ...inputData, layout: layoutData } : inputData;
+
+    // Render this template
+    let result = await engine.render(templateFn, data);
+
+    if (layoutData?.layout) {
+      // Wrap result in base template
+      if (!parent) {
+        throw new Error(
+          `A Liquid template layout without a parent folder can't load a base layout like "${baseTemplatePath}".`
+        );
+      }
+      let baseTemplatePath = layoutData.layout;
+      if (!baseTemplatePath.endsWith(".liquid")) {
+        baseTemplatePath += ".liquid";
+      }
+      const layoutTemplate = await Tree.traversePath(parent, baseTemplatePath);
+      if (!layoutTemplate) {
+        throw new Error(
+          `A Liquid template layout references "${baseTemplatePath}", but that file can't be found.`
+        );
+      }
+      const layoutFn = unpack(layoutTemplate);
+      result = await layoutFn({
+        content: result,
+      });
+    }
+
+    return result;
+  };
+}
+
 // Return a Liquid virtual file system backed by the given tree.
 // See https://liquidjs.com/api/interfaces/FS.html
 function liquidFs(tree) {
@@ -67,41 +109,7 @@ function unpack(packed, options = {}) {
 
   const templateFn = engine.parse(content);
 
-  return async (input) => {
-    if (isUnpackable(input)) {
-      input = await input.unpack();
-    }
-    const inputData = input ? await toPlainValue(input) : {};
-    const data = layoutData ? { ...inputData, layout: layoutData } : inputData;
-
-    // Render this template
-    let result = await engine.render(templateFn, data);
-
-    if (layoutData?.layout) {
-      if (!parent) {
-        throw new Error(
-          `A Liquid template layout without a parent folder can't load a base layout like "${baseTemplatePath}".`
-        );
-      }
-      // Wrap result in base template
-      let baseTemplatePath = layoutData.layout;
-      if (!baseTemplatePath.endsWith(".liquid")) {
-        baseTemplatePath += ".liquid";
-      }
-      const layoutTemplate = await Tree.traversePath(parent, baseTemplatePath);
-      if (!layoutTemplate) {
-        throw new Error(
-          `A Liquid template layout references "${baseTemplatePath}", but that file can't be found.`
-        );
-      }
-      const layoutFn = unpack(layoutTemplate);
-      result = await layoutFn({
-        content: result,
-      });
-    }
-
-    return result;
-  };
+  return wrapTemplateFunction(engine, parent, templateFn, layoutData);
 }
 
 export default {
