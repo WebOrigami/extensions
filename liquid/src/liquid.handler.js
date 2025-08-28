@@ -6,6 +6,7 @@ import {
   Tree,
 } from "@weborigami/async-tree";
 import { Liquid } from "liquidjs";
+import path from "node:path";
 import * as YAMLModule from "yaml";
 
 // The "yaml" package doesn't seem to provide a default export that the browser can
@@ -17,15 +18,14 @@ const YAML = YAMLModule.default ?? YAMLModule.YAML;
 // See https://liquidjs.com/api/interfaces/FS.html
 function liquidFs(tree) {
   return {
-    // TODO
+    // This appears to be a sync method; return true and rely on readFile to
+    // actually look for the file.
     contains(root, file) {
       return true;
     },
 
-    // TODO
     dirname(filePath) {
-      debugger;
-      return filePath.substring(0, filePath.lastIndexOf("/"));
+      return path.dirname(filePath);
     },
 
     // TODO
@@ -34,13 +34,15 @@ function liquidFs(tree) {
     },
 
     async readFile(filePath) {
-      const value = await tree.get(filePath);
+      if (filePath.startsWith("./")) {
+        filePath = filePath.substring(2);
+      }
+      const value = await Tree.traversePath(tree, filePath);
       return value ? toString(value) : undefined;
     },
 
-    // TODO
     resolve(dir, file, ext) {
-      return file;
+      return `${dir}/${file}${ext}`;
     },
 
     sep: "/",
