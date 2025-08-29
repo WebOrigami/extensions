@@ -47,13 +47,13 @@ layout: base
     assert.equal(result, "<html><body><h1>Hello, world!</h1></body></html>");
   });
 
-  test.skip("can use an include directive", async () => {
+  test("can use an include directive", async () => {
     const parent = new ObjectTree({
       "included.liquid": `{{ greeting }}, {{ name }}!`,
     });
-    const template = `{% include "included.liquid" with person %}`;
+    const template = `{% include "included.liquid" %}`;
     const fn = await liquidHandler.unpack(template, { parent });
-    const result = await fn({ person: { greeting: "Hello", name: "world" } });
+    const result = await fn({ greeting: "Hello", name: "world" });
     assert.equal(result, "Hello, world!");
   });
 });
