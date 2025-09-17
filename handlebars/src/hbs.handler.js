@@ -1,8 +1,8 @@
 import {
   isUnpackable,
-  scope,
   toPlainValue,
   toString,
+  Tree,
 } from "@weborigami/async-tree";
 import Handlebars from "handlebars";
 
@@ -17,7 +17,7 @@ export default {
     const template = toString(packed);
     let partials;
     if (options.parent) {
-      const templateScope = scope(options.parent);
+      const templateScope = await Tree.scope(options.parent);
       partials = await getPartials(templateScope, template);
     } else {
       partials = [];
