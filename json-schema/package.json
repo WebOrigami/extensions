@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/json-schema",
-  "version": "0.0.2",
+  "version": "0.0.13",
   "type": "module",
   "main": "src/compileJsonSchema.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.4.2",
+    "@weborigami/async-tree": "0.5.5",
     "ajv": "8.17.1"
   },
   "scripts": {
