@@ -99,7 +99,7 @@ If you have many things you'd like to include, it may be helpful to name all the
 You can supply [Pagefind configuration options](https://pagefind.app/docs/config-options/) by writing them in camelCase.
 
 ```
-  pagefind/ = Origami.once(() => package:@weborigami/pagefind(indexable, {
+  pagefind/ = Origami.once(() => package:@weborigami/pagefind(indexable, "", {
     rootSelector: "main",
     forceLanguage: "en",
     writePlayground: true
