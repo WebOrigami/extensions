@@ -4,7 +4,7 @@
   "type": "module",
   "main": "src/indexTree.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.4.1",
-    "pagefind": "1.3.0"
+    "@weborigami/async-tree": "0.5.1",
+    "pagefind": "1.4.0"
   }
 }

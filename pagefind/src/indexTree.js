@@ -11,10 +11,11 @@ const TypedArray = Object.getPrototypeOf(Uint8Array);
  * @typedef {import("@weborigami/async-tree").Treelike} Treelike
  * @param {Treelike} treelike
  * @param {string} [basePath]
+ * @param {Object} [config] - Pagefind configuration options (camelCase)
  * @returns {Treelike}
  */
-export default async function indexTree(treelike, basePath = "") {
-  const { index } = await pagefind.createIndex();
+export default async function indexTree(treelike, basePath = "", config = {}) {
+  const { index } = await pagefind.createIndex(config);
 
   // Add everything in the input tree to the index.
   await addTreeToIndex(treelike, { index, basePath });
