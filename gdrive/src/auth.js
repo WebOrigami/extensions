@@ -11,17 +11,11 @@ const scopes = [
 export default async function auth(credentialsTreelike) {
   const credentials = await Tree.plain(credentialsTreelike);
   const auth = new googleApis.google.auth.GoogleAuth({ credentials, scopes });
-
-  // Because of latency, we don't want to include Dropbox trees in scope.
-  // We give the tree the same parent as this tree.
-  const parent = this?.parent;
-
   return (folderId) => {
     const tree = new (HandleExtensionsTransform(GoogleDriveTree))(
       auth,
       folderId
     );
-    tree.parent = parent;
     return tree;
   };
 }
