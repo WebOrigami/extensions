@@ -81,7 +81,10 @@
       "magnitude": 36,
       "unit": "PT"
     },
-    "useCustomHeaderFooterMargins": true
+    "useCustomHeaderFooterMargins": true,
+    "documentFormat": {
+      "documentMode": "PAGELESS"
+    }
   },
   "namedStyles": {
     "styles": [
