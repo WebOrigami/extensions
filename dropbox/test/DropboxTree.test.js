@@ -11,7 +11,7 @@ describe("DropboxTree", () => {
     const projectTree = new FileTree(projectUrl);
     const credsBuffer = await projectTree.get("creds.json");
     const creds = JSON.parse(toString(credsBuffer));
-    const tree = await auth.call(projectTree, creds);
+    const tree = await auth(creds);
     fixture = await tree.get("Test/");
   });
 
