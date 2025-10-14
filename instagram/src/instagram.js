@@ -11,6 +11,5 @@ export default async function instagram(token, userId = "me") {
   }
 
   const tree = new InstagramMediaTree(token, userId);
-  tree.parent = this;
   return tree;
 }

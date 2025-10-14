@@ -43,6 +43,5 @@ export default async function tsc(treelike, options) {
   // const diagnostics = ts.getPreEmitDiagnostics(program);
 
   const dist = await Tree.traversePath(treeHost, outDir);
-  dist.parent = this;
   return dist;
 }

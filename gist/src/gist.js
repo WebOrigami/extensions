@@ -48,6 +48,5 @@ async function treeForGist(token, gistId) {
 
   // Add file extension handling
   const tree = new (HandleExtensionsTransform(ObjectTree))(contents);
-  tree.parent = this;
   return tree;
 }
