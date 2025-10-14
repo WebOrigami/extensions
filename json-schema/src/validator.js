@@ -17,10 +17,10 @@ import Ajv from "ajv/dist/2020.js";
  * @returns {function}
  */
 export default async function validator(schemaTreelike, options) {
-  const context = this;
+  const container = this;
 
   const schema = await Tree.plain(schemaTreelike);
-  const loadSchema = async (uri) => getSchema(context, uri);
+  const loadSchema = async (uri) => getSchema(container, uri);
   const ajv = new Ajv(
     Object.assign(
       {
@@ -77,6 +77,7 @@ export default async function validator(schemaTreelike, options) {
     return input;
   };
 }
+validator.containerAsTarget = true;
 
 function formatInstance(object) {
   let text =

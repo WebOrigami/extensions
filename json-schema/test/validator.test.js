@@ -3,12 +3,12 @@ import assert from "node:assert";
 import path from "node:path";
 import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import compileJsonSchema from "../src/compileJsonSchema.js";
+import validator from "../src/validator.js";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixtures = new FileTree(path.join(dirname, "fixtures"));
 
-describe("compileJsonSchema", () => {
+describe("validator", () => {
   test("returns input data as is if it is valid", async () => {
     const schema = {
       type: "object",
@@ -18,7 +18,7 @@ describe("compileJsonSchema", () => {
       },
       required: ["name"],
     };
-    const validate = await compileJsonSchema(schema);
+    const validate = await validator(schema);
     const input = { name: "Alice", age: 30 };
     const output = await validate(input);
     assert.deepEqual(output, input);
@@ -33,7 +33,7 @@ describe("compileJsonSchema", () => {
       },
       required: ["name"],
     };
-    const validate = await compileJsonSchema(schema);
+    const validate = await validator(schema);
     const input = { age: 30 };
     await assert.rejects(
       () => validate(input, "foo.json"),
@@ -53,7 +53,7 @@ describe("compileJsonSchema", () => {
       },
       additionalProperties: false, // Don't allow other file names
     };
-    const validate = await compileJsonSchema(schema);
+    const validate = await validator(schema);
     await assert.rejects(
       () => validate(markdown, "markdown"),
       new Error(
@@ -83,7 +83,7 @@ describe("compileJsonSchema", () => {
     const schema = {
       $ref: "./users.json",
     };
-    const validate = await compileJsonSchema.call(context, schema);
+    const validate = await validator.call(context, schema);
     const valid = await validate([{ name: "Alice", age: 30 }]);
     assert(valid);
     await assert.rejects(
