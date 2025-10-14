@@ -1,4 +1,4 @@
-const maxRetries = 5;
+const maxRetries = 10;
 const baseDelaySeconds = 1;
 
 /**
