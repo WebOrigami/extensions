@@ -2,7 +2,7 @@
   "name": "@weborigami/epub",
   "version": "0.0.7",
   "type": "module",
-  "main": "src/epub.handler.js",
+  "main": "src/epub_handler.js",
   "dependencies": {
     "@weborigami/async-tree": "0.0.72",
     "@weborigami/language": "0.0.72",

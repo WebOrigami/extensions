@@ -1,12 +1,12 @@
 import { ObjectTree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import hbsHandler from "../src/hbs.handler.js";
+import hbs_handler from "../src/hbs_handler.js";
 
 describe("Handlebars hbs extension handler", () => {
   test("returns a function that applies a Handlebars template", async () => {
     const template = `Hello, {{ name }}!`;
-    const fn = await hbsHandler.unpack(template);
+    const fn = await hbs_handler.unpack(template);
     const tree = new ObjectTree({ name: "world" });
     const result = await fn(tree);
     assert.equal(result, "Hello, world!");
@@ -17,7 +17,7 @@ describe("Handlebars hbs extension handler", () => {
       ["bold.hbs"]: `<strong>{{this}}</strong>`,
     });
     const template = `Hello, {{#> bold}}{{ name }}{{/bold}}!`;
-    const fn = await hbsHandler.unpack(template, { parent });
+    const fn = await hbs_handler.unpack(template, { parent });
     const result = await fn("world");
     assert.equal(result, "Hello, <strong>world</strong>!");
   });

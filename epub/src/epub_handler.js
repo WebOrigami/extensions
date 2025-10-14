@@ -1,5 +1,5 @@
 import { Tree } from "@weborigami/async-tree";
-import zipHandler from "@weborigami/zip";
+import zip_handler from "@weborigami/zip";
 
 /**
  * Handler for EPUB files
@@ -17,10 +17,10 @@ export default {
    */
   async pack(treelike) {
     const tree = Tree.from(treelike);
-    return zipHandler.pack(mimetypeFirst(tree));
+    return zip_handler.pack(mimetypeFirst(tree));
   },
 
-  unpack: zipHandler.unpack,
+  unpack: zip_handler.unpack,
 };
 
 // A tree with its `mimetype` file first

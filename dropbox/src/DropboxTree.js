@@ -46,7 +46,7 @@ export default class DropboxTree {
     const normalizedKey = trailingSlash.remove(key);
 
     // HACK: For now we don't allow lookup of Origami extension handlers.
-    if (normalizedKey.endsWith(".handler")) {
+    if (normalizedKey.endsWith("_handler")) {
       return undefined;
     }
 

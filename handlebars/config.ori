@@ -1,4 +1,4 @@
 {
   // Tell Origami to use our handler for .hbs files.
-  hbs.handler = src/hbs.handler.js
+  hbs_handler = src/hbs_handler.js
 }

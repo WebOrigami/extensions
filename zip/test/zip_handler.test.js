@@ -3,7 +3,7 @@ import Zip from "adm-zip";
 import assert from "node:assert";
 import fs from "node:fs/promises";
 import { describe, test } from "node:test";
-import zipHandler from "../src/zip.handler.js";
+import zip_handler from "../src/zip_handler.js";
 
 describe("ZIP handler", () => {
   test("creates a ZIP file as Buffer", async () => {
@@ -13,7 +13,7 @@ describe("ZIP handler", () => {
         "file.txt": "This is a text file in a subfolder.",
       },
     };
-    const buffer = await zipHandler.pack(tree);
+    const buffer = await zip_handler.pack(tree);
     const unzipped = new Zip(buffer);
     const entries = unzipped.getEntries();
     assert.equal(entries.length, 2);
@@ -32,7 +32,7 @@ describe("ZIP handler", () => {
   test("reads a ZIP file", async () => {
     const fixturePath = new URL("fixtures/test.zip", import.meta.url);
     const buffer = await fs.readFile(fixturePath);
-    const tree = await zipHandler.unpack(buffer);
+    const tree = await zip_handler.unpack(buffer);
     const plain = await Tree.plain(tree);
     assert.deepEqual(Object.keys(plain), ["ReadMe.md", "sub"]);
     assert.deepEqual(Object.keys(plain.sub), ["file.txt"]);
