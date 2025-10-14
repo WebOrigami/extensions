@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/esbuild",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "type": "module",
   "main": "src/esbuild.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.5.5",
+    "@weborigami/async-tree": "0.5.6",
     "esbuild": "0.25.10"
   },
   "devDependencies": {
