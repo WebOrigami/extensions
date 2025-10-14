@@ -1,11 +1,11 @@
 {
   "name": "@weborigami/gist",
-  "version": "0.0.2",
+  "version": "0.0.14",
   "type": "module",
   "main": "src/gist.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.63",
-    "@weborigami/language": "0.0.63"
+    "@weborigami/async-tree": "0.5.6",
+    "@weborigami/language": "0.5.6"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
