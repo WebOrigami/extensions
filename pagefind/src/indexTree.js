@@ -45,7 +45,7 @@ function addValueToObject(object, keys, value) {
 async function addTreeToIndex(treelike, options) {
   const tree = Tree.from(treelike);
   const { index, basePath } = options;
-  for (const key of await tree.keys()) {
+  for (const key of await Tree.keys(tree)) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
     if (Tree.isTreelike(value)) {
