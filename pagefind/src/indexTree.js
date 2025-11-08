@@ -48,7 +48,7 @@ async function addTreeToIndex(treelike, options) {
   for (const key of await Tree.keys(tree)) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
-    if (Tree.isTreelike(value)) {
+    if (Tree.isMap(value)) {
       await addTreeToIndex(value, { index, basePath: path });
       continue;
     } else if (!key.endsWith(".html")) {
