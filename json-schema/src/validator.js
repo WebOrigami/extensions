@@ -34,7 +34,7 @@ export default async function validator(schemaTreelike, options) {
 
   return async (input, key) => {
     let data;
-    if (Tree.isTreelike(input)) {
+    if (Tree.isMaplike(input)) {
       // If the input is a tree, unpack any packed values
       const unpacked = await Tree.map(input, async (item) =>
         isUnpackable(item) ? await item.unpack() : item

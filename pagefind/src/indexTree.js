@@ -45,23 +45,24 @@ function addValueToObject(object, keys, value) {
 async function addTreeToIndex(treelike, options) {
   const tree = Tree.from(treelike);
   const { index, basePath } = options;
-  for (const key of await Tree.keys(tree)) {
+  for await (const key of tree.keys()) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
     if (Tree.isMap(value)) {
+      // Child node
       await addTreeToIndex(value, { index, basePath: path });
       continue;
-    } else if (!key.endsWith(".html")) {
-      continue;
-    }
-    const result = await index.addHTMLFile({
-      url: path,
-      content: toString(value),
-    });
-    if (result.errors?.length > 0) {
-      console.error(
-        `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
-      );
+    } else if (key.endsWith(".html")) {
+      // HTML file
+      const result = await index.addHTMLFile({
+        url: path,
+        content: toString(value),
+      });
+      if (result.errors?.length > 0) {
+        console.error(
+          `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
+        );
+      }
     }
   }
 }

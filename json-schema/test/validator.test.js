@@ -1,4 +1,4 @@
-import { FileTree } from "@weborigami/async-tree";
+import { FileMap } from "@weborigami/async-tree";
 import assert from "node:assert";
 import path from "node:path";
 import { describe, test } from "node:test";
@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import validator from "../src/validator.js";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const fixtures = new FileTree(path.join(dirname, "fixtures"));
+const fixtures = new FileMap(path.join(dirname, "fixtures"));
 
 describe("validator", () => {
   test("returns input data as is if it is valid", async () => {

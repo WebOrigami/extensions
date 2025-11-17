@@ -1,4 +1,4 @@
-import { Tree } from "@weborigami/async-tree";
+import { AsyncMap, Tree } from "@weborigami/async-tree";
 import zip_handler from "@weborigami/zip";
 
 /**
@@ -25,20 +25,20 @@ export default {
 
 // A tree with its `mimetype` file first
 function mimetypeFirst(tree) {
-  return {
+  return Object.assign(new AsyncMap(), {
     async get(key) {
       return tree.get(key);
     },
 
-    async keys() {
-      const keys = [...(await tree.keys())];
+    async *keys() {
+      const keys = await Tree.keys(tree);
       // Move `mimetype` (if present) to the front of the list.
       const index = keys.indexOf("mimetype");
       if (index >= 0) {
         keys.splice(index, 1);
         keys.unshift("mimetype");
       }
-      return keys;
+      yield* keys;
     },
-  };
+  });
 }

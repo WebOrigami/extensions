@@ -1,14 +1,14 @@
-import { FileTree, toString, Tree } from "@weborigami/async-tree";
+import { FileMap, toString, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { before, describe, test } from "node:test";
 import auth from "../src/auth.js";
 
-describe("DropboxTree", () => {
+describe("DropboxMap", () => {
   let fixture;
 
   before(async () => {
     const projectUrl = new URL("..", import.meta.url);
-    const projectTree = new FileTree(projectUrl);
+    const projectTree = new FileMap(projectUrl);
     const credsBuffer = await projectTree.get("creds.json");
     const creds = JSON.parse(toString(credsBuffer));
     const tree = await auth(creds);
@@ -16,19 +16,22 @@ describe("DropboxTree", () => {
   });
 
   test("can get keys", async () => {
-    const keys = await fixture.keys();
+    const keys = [];
+    for await (const key of fixture.keys()) {
+      keys.push(key);
+    }
     assert.deepEqual(keys, ["images/", "ReadMe.md", "teamData.yaml"]);
   });
 
   test("returns a subtree for a key that ends in a slash", async () => {
     const subtree = await fixture.get("images/");
-    assert(Tree.isAsyncTree(subtree));
+    assert(Tree.isMap(subtree));
     assert.equal(subtree.path, "/Test/images/");
   });
 
   test("returns a subtree even if key doesn't end in slash", async () => {
     const subtree = await fixture.get("images");
-    assert(Tree.isAsyncTree(subtree));
+    assert(Tree.isMap(subtree));
     assert.equal(subtree.path, "/Test/images/");
   });
 

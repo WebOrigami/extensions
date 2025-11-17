@@ -1,4 +1,4 @@
-import { ObjectTree, isUnpackable, toString } from "@weborigami/async-tree";
+import { SyncMap, isUnpackable, toString } from "@weborigami/async-tree";
 import { HandleExtensionsTransform } from "@weborigami/language";
 
 /**
@@ -40,13 +40,15 @@ async function treeForGist(token, gistId) {
   }
 
   const { files } = await response.json();
+
+  // Create a map to hold the file contents. While based on a SyncMap, we'll
+  // attach extension handlers; that makes the map async.
+  const contents = new (HandleExtensionsTransform(SyncMap))();
+
   // Top-level `files` has the actual file content in `content` properties.
-  const contents = {};
   for (const [name, file] of Object.entries(files)) {
-    contents[name] = file.content;
+    contents.set(name, file.content);
   }
 
-  // Add file extension handling
-  const tree = new (HandleExtensionsTransform(ObjectTree))(contents);
-  return tree;
+  return contents;
 }

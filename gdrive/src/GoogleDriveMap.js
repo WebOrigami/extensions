@@ -1,4 +1,4 @@
-import { naturalOrder } from "@weborigami/async-tree";
+import { AsyncMap, naturalOrder } from "@weborigami/async-tree";
 import { google } from "googleapis";
 import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
@@ -9,10 +9,13 @@ const googleExtensions = {
 };
 
 /**
+ * A Google Drive folder as an async map.
+ *
  * @implements {import("@weborigami/async-tree").AsyncTree}
  */
-export default class GoogleDriveTree {
+export default class GoogleDriveMap extends AsyncMap {
   constructor(auth, folderId) {
+    super();
     this.auth = auth;
     this.service = google.drive({ version: "v3", auth });
     this.folderId = folderId;
@@ -75,13 +78,13 @@ export default class GoogleDriveTree {
     return item?.mimeType === "application/vnd.google-apps.folder";
   }
 
-  async keys() {
+  async *keys() {
     const items = await this.getItems();
     const keys = Object.keys(items);
     // Origami tree drivers generally use natural sort order. For reference,
     // Google Drive's own UI uses what seems to be natural sort order.
     keys.sort(naturalOrder);
-    return keys;
+    yield* keys;
   }
 }
 

@@ -1,6 +1,6 @@
 import { Tree } from "@weborigami/async-tree";
 import { HandleExtensionsTransform } from "@weborigami/language";
-import DropboxTree from "./DropboxTree.js";
+import DropboxMap from "./DropboxMap.js";
 
 // Map of app secret to access token.
 const accessTokenMap = new Map();
@@ -23,7 +23,7 @@ export default async function auth(credentialsTreelike) {
 
   let tree = treeMap[accessToken];
   if (!tree) {
-    tree = new (HandleExtensionsTransform(DropboxTree))(accessToken);
+    tree = new (HandleExtensionsTransform(DropboxMap))(accessToken);
     treeMap[accessToken] = tree;
   }
 
