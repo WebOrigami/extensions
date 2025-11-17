@@ -1,4 +1,5 @@
 import {
+  getParent,
   isUnpackable,
   toPlainValue,
   toString,
@@ -15,9 +16,10 @@ export default {
   /** @type {import("@weborigami/language").UnpackFunction} */
   async unpack(packed, options = {}) {
     const template = toString(packed);
+    const parent = getParent(packed, options);
     let partials;
-    if (options.parent) {
-      const templateScope = await Tree.scope(options.parent);
+    if (parent) {
+      const templateScope = await Tree.scope(parent);
       partials = await getPartials(templateScope, template);
     } else {
       partials = [];
