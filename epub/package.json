@@ -1,12 +1,12 @@
 {
   "name": "@weborigami/epub",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "type": "module",
   "main": "src/epub_handler.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.5.6",
-    "@weborigami/language": "0.5.6",
-    "@weborigami/zip": "0.0.14"
+    "@weborigami/async-tree": "0.6.0",
+    "@weborigami/language": "0.6.0",
+    "@weborigami/zip": "0.0.15"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
