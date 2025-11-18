@@ -1,4 +1,4 @@
-This package provides functions for treating a [Google Drive](https://www.google.com/drive/) folder as an [async tree](https://weborigami.org/async-tree/interface).
+This package provides functions for treating a [Google Drive](https://www.google.com/drive/) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface).
 
 It also allows you to read a [Google Sheets](https://www.google.com/sheets/about/) spreadsheet range or [Google Docs](https://www.google.com/docs/about/) document as plain JSON.
 
@@ -41,12 +41,12 @@ package:@weborigami/gdrive/auth(creds.json)/<id goes here>
 You can then use the [Origami CLI](https://weborigami.org/cli) to get a list of the files in the Google Drive folder:
 
 ```console
-$ ori @keys test.ori/
+$ ori keys test.ori
 ... list of file names in the Google Drive folder...
 ```
 
-Or copy the Google Drive folder to a local folder called `copied`:
+Or copy the Google Drive folder to a local folder called `snapshot`:
 
 ```console
-$ ori @copy test.ori, @files/copied
+$ ori copy test.ori, files:snapshot
 ```
