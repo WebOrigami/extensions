@@ -1,5 +1,6 @@
 import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
 import { google } from "googleapis";
+import { Readable } from "node:stream";
 import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
 
@@ -164,13 +165,15 @@ async function createFile(service, folderId, name, body) {
         parents: [folderId],
       },
       media: {
-        body,
+        body: toReadable(body),
       },
       uploadType: "media",
     });
     return response?.data;
   } catch (e) {
-    const message = `Error ${e.code} ${e.response.statusText} creating file ${name}: ${e.message}`;
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } creating file ${name}: ${e.message}`;
     console.error(message);
     return null;
   }
@@ -187,7 +190,9 @@ async function createFolder(service, parentFolderId, name) {
     });
     return response?.data;
   } catch (e) {
-    const message = `Error ${e.code} ${e.response.statusText} creating folder ${name}: ${e.message}`;
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } creating folder ${name}: ${e.message}`;
     console.error(message);
     return null;
   }
@@ -206,7 +211,9 @@ async function getFile(auth, fileId) {
     const service = google.drive({ version: "v3", auth });
     response = await service.files.get(params, options);
   } catch (e) {
-    const message = `Error ${e.code}  ${e.response.statusText} getting file ${fileId}: ${e.message}`;
+    const message = `Error ${e.code}  ${
+      e.response?.statusText ?? ""
+    } getting file ${fileId}: ${e.message}`;
     console.error(message);
     return undefined;
   }
@@ -223,9 +230,24 @@ async function deleteFile(service, fileId) {
       fileId,
     });
   } catch (e) {
-    const message = `Error ${e.code} ${e.response.statusText} deleting file ${fileId}: ${e.message}`;
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } deleting file ${fileId}: ${e.message}`;
     console.error(message);
   }
+}
+
+// The Google Drive API client library does better with streams for uploads.
+function toReadable(body) {
+  if (body && typeof body.pipe === "function") {
+    // Already a stream
+    return body;
+  } else if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
+    // Uint8Array or ArrayBuffer → single binary chunk
+    const chunk = body instanceof Uint8Array ? body : new Uint8Array(body);
+    return Readable.from([chunk]); // NOTE: [chunk], not chunk
+  }
+  return Readable.from(body); // String, etc.
 }
 
 async function updateFile(service, fileId, name, body) {
@@ -233,12 +255,14 @@ async function updateFile(service, fileId, name, body) {
     await service.files.update({
       fileId,
       media: {
-        body,
+        body: toReadable(body),
       },
       uploadType: "media",
     });
   } catch (e) {
-    const message = `Error ${e.code} ${e.response.statusText} updating file ${name}: ${e.message}`;
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } updating file ${name}: ${e.message}`;
     console.error(message);
   }
 }
