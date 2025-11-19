@@ -47,4 +47,19 @@ describe("GoogleDriveTree", () => {
 
     assert(!(await fixture.has(key)));
   });
+
+  test("can create a subfolder", async () => {
+    const key = "New Folder";
+
+    if (await fixture.has(key)) {
+      // We want to test creation, delete existing folder
+      await fixture.delete(key);
+    }
+
+    await fixture.set(key, fixture.constructor.EMPTY);
+    assert(await fixture.has(key));
+
+    const deleted = await fixture.delete(key);
+    assert(deleted);
+  });
 });

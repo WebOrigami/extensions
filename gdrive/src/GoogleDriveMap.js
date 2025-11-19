@@ -9,7 +9,14 @@ const googleExtensions = {
 };
 
 /**
- * A Google Drive folder as an async map.
+ * A Google Drive folder as an async map
+ *
+ * Google Drive requires that all folders and files be accessed by ID. This is
+ * cumbersome, since we want to enable access by name. Therefore, this class
+ * maintains an internal map of file names to file IDs for the folder it
+ * represents. This map is loaded on demand the first time it is needed, and
+ * cached for subsequent access. If files are added or removed outside of this
+ * class, the cache will become out of date.
  *
  * @implements {import("@weborigami/async-tree").AsyncTree}
  */
@@ -23,18 +30,6 @@ export default class GoogleDriveMap extends AsyncMap {
     this.items = null;
   }
 
-  // We override the base implementation of clear() so that we can delete all
-  // files in the folder with parallel requests, and so that we only invalidate
-  // the cached items once.
-  async clear() {
-    const items = await this.getItems();
-    const promises = Array.from(items.values()).map((item) =>
-      deleteFile(this.service, item.id)
-    );
-    await Promise.all(promises);
-    this.itemsPromise = null; // Invalidate cached items
-  }
-
   async delete(key) {
     const items = await this.getItems();
     const item = items.get(key);
@@ -43,7 +38,7 @@ export default class GoogleDriveMap extends AsyncMap {
     }
 
     await deleteFile(this.service, item.id);
-    delete this.items[key];
+    this.items.delete(key);
     return true;
   }
 
@@ -124,13 +119,32 @@ export default class GoogleDriveMap extends AsyncMap {
     const normalized = trailingSlash.remove(key);
     const item = items.get(normalized);
 
-    if (item) {
+    if (value === this.constructor.EMPTY) {
+      // Create subfolder
+      if (item && item.mimeType !== "application/vnd.google-apps.folder") {
+        throw new Error(
+          `${this.constructor.name}: Cannot create folder ${key}, a file with that name already exists.`
+        );
+      } else if (!item) {
+        const data = await createFolder(
+          this.service,
+          this.folderId,
+          normalized
+        );
+        if (data) {
+          const { id, mimeType } = data;
+          this.items.set(normalized, { id, mimeType });
+        }
+      }
+    } else if (item) {
+      // Update existing file
       await updateFile(this.service, item.id, key, value);
     } else {
+      // Create new file
       const data = await createFile(this.service, this.folderId, key, value);
       if (data) {
         const { id, mimeType } = data;
-        this.items[key] = { id, mimeType };
+        this.items.set(normalized, { id, mimeType });
       }
     }
 
@@ -157,6 +171,23 @@ async function createFile(service, folderId, name, body) {
     return response?.data;
   } catch (e) {
     const message = `Error ${e.code} ${e.response.statusText} creating file ${name}: ${e.message}`;
+    console.error(message);
+    return null;
+  }
+}
+
+async function createFolder(service, parentFolderId, name) {
+  try {
+    const response = await service.files.create({
+      requestBody: {
+        name: name,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [parentFolderId],
+      },
+    });
+    return response?.data;
+  } catch (e) {
+    const message = `Error ${e.code} ${e.response.statusText} creating folder ${name}: ${e.message}`;
     console.error(message);
     return null;
   }
