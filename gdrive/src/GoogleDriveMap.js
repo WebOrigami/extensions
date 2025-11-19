@@ -94,12 +94,6 @@ export default class GoogleDriveMap extends AsyncMap {
     return this.itemsPromise;
   }
 
-  async isKeyForSubtree(key) {
-    const items = await this.getItems();
-    const item = items[key];
-    return item?.mimeType === "application/vnd.google-apps.folder";
-  }
-
   async *keys() {
     const items = await this.getItems();
     const keys = Object.keys(items);

@@ -27,9 +27,4 @@ describe("GoogleDriveTree", () => {
     const text = String(value);
     assert.equal(text, "This folder is used to test the gdrive extension.\n");
   });
-
-  test("can test whether a key is for a subtree", async () => {
-    assert(await fixture.isKeyForSubtree("images"));
-    assert(!(await fixture.isKeyForSubtree("ReadMe.md")));
-  });
 });
