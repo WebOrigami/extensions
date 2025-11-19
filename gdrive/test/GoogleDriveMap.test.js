@@ -27,4 +27,24 @@ describe("GoogleDriveTree", () => {
     const text = String(value);
     assert.equal(text, "This folder is used to test the gdrive extension.\n");
   });
+
+  test.only("can create and delete a value", async () => {
+    const key = "NewFile.txt";
+    const value = "Hello, world!";
+
+    if (await fixture.has(key)) {
+      // We want to test creation, delete existing file
+      await fixture.delete(key);
+    }
+
+    await fixture.set(key, value);
+    const actualValue = await fixture.get(key);
+    const text = String(actualValue);
+    assert.equal(text, value);
+
+    const deleted = await fixture.delete(key);
+    assert(deleted);
+
+    assert(!(await fixture.has(key)));
+  });
 });

@@ -20,6 +20,7 @@ export default class GoogleDriveMap extends AsyncMap {
     this.service = google.drive({ version: "v3", auth });
     this.folderId = folderId;
     this.itemsPromise = null;
+    this.items = null;
   }
 
   // We override the base implementation of clear() so that we can delete all
@@ -40,7 +41,7 @@ export default class GoogleDriveMap extends AsyncMap {
     }
 
     await deleteFile(this.service, item.id);
-    this.itemsPromise = null; // Invalidate cached items
+    delete this.items[key];
     return true;
   }
 
@@ -70,7 +71,11 @@ export default class GoogleDriveMap extends AsyncMap {
   }
 
   async getItems() {
-    if (this.itemsPromise) {
+    if (this.items) {
+      // Return cached items
+      return this.items;
+    } else if (this.itemsPromise) {
+      // Return pending promise
       return this.itemsPromise;
     }
 
@@ -91,7 +96,8 @@ export default class GoogleDriveMap extends AsyncMap {
       return items;
     });
 
-    return this.itemsPromise;
+    this.items = await this.itemsPromise;
+    return this.items;
   }
 
   async *keys() {
@@ -111,7 +117,11 @@ export default class GoogleDriveMap extends AsyncMap {
     if (item) {
       await updateFile(this.service, item.id, key, value);
     } else {
-      await createFile(this.service, this.folderId, key, value);
+      const data = await createFile(this.service, this.folderId, key, value);
+      if (data) {
+        const { id, mimeType } = data;
+        this.items[key] = { id, mimeType };
+      }
     }
 
     return this;
@@ -120,7 +130,7 @@ export default class GoogleDriveMap extends AsyncMap {
 
 async function createFile(service, folderId, name, body) {
   try {
-    await service.files.create({
+    const response = await service.files.create({
       requestBody: {
         name: name,
         parents: [folderId],
@@ -130,9 +140,11 @@ async function createFile(service, folderId, name, body) {
       },
       uploadType: "media",
     });
+    return response?.data;
   } catch (e) {
     const message = `Error ${e.code} ${e.response.statusText} creating file ${name}: ${e.message}`;
     console.error(message);
+    return null;
   }
 }
 
