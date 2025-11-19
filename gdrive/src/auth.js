@@ -5,6 +5,7 @@ import GoogleDriveMap from "./GoogleDriveMap.js";
 
 const scopes = [
   "https://www.googleapis.com/auth/drive.readonly",
+  "https://www.googleapis.com/auth/documents.readonly",
   "https://www.googleapis.com/auth/spreadsheets.readonly",
 ];
 
