@@ -1,4 +1,4 @@
-import { AsyncMap, naturalOrder } from "@weborigami/async-tree";
+import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
 import { google } from "googleapis";
 import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
@@ -28,14 +28,16 @@ export default class GoogleDriveMap extends AsyncMap {
   // the cached items once.
   async clear() {
     const items = await this.getItems();
-    const promises = items.map((item) => deleteFile(this.service, item.id));
+    const promises = Array.from(items.values()).map((item) =>
+      deleteFile(this.service, item.id)
+    );
     await Promise.all(promises);
     this.itemsPromise = null; // Invalidate cached items
   }
 
   async delete(key) {
     const items = await this.getItems();
-    const item = items[key];
+    const item = items.get(key);
     if (!item) {
       return false;
     }
@@ -54,7 +56,8 @@ export default class GoogleDriveMap extends AsyncMap {
     }
 
     const items = await this.getItems();
-    const item = items[key];
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
     if (!item) {
       return undefined;
     }
@@ -86,12 +89,12 @@ export default class GoogleDriveMap extends AsyncMap {
     };
 
     this.itemsPromise = this.service.files.list(params).then((response) => {
-      const items = {};
+      const items = new Map();
       for (const file of response.data.files) {
         const { id, mimeType } = file;
         const extension = googleExtensions[mimeType] || "";
         const name = file.name + extension;
-        items[name] = { id, mimeType };
+        items.set(name, { id, mimeType });
       }
       return items;
     });
@@ -102,7 +105,13 @@ export default class GoogleDriveMap extends AsyncMap {
 
   async *keys() {
     const items = await this.getItems();
-    const keys = Object.keys(items);
+    // Add trailing slashes to folder keys
+    const keys = Array.from(items.entries()).map(([key, item]) =>
+      trailingSlash.toggle(
+        key,
+        item.mimeType === "application/vnd.google-apps.folder"
+      )
+    );
     // Origami tree drivers generally use natural sort order. For reference,
     // Google Drive's own UI uses what seems to be natural sort order.
     keys.sort(naturalOrder);
@@ -112,7 +121,8 @@ export default class GoogleDriveMap extends AsyncMap {
   async set(key, value) {
     // Does the file already exist?
     const items = await this.getItems();
-    const item = items[key];
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
 
     if (item) {
       await updateFile(this.service, item.id, key, value);
@@ -125,6 +135,10 @@ export default class GoogleDriveMap extends AsyncMap {
     }
 
     return this;
+  }
+
+  get trailingSlashKeys() {
+    return true;
   }
 }
 

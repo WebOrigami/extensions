@@ -15,7 +15,7 @@ describe("GoogleDriveTree", () => {
       keys.push(key);
     }
     assert.deepEqual(keys, [
-      "images",
+      "images/",
       "ReadMe.md",
       "Sample.gdoc",
       "Team.gsheet",
@@ -28,7 +28,7 @@ describe("GoogleDriveTree", () => {
     assert.equal(text, "This folder is used to test the gdrive extension.\n");
   });
 
-  test.only("can create and delete a value", async () => {
+  test("can create and delete a value", async () => {
     const key = "NewFile.txt";
     const value = "Hello, world!";
 
