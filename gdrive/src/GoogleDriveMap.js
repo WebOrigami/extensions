@@ -22,6 +22,28 @@ export default class GoogleDriveMap extends AsyncMap {
     this.itemsPromise = null;
   }
 
+  // We override the base implementation of clear() so that we can delete all
+  // files in the folder with parallel requests, and so that we only invalidate
+  // the cached items once.
+  async clear() {
+    const items = await this.getItems();
+    const promises = items.map((item) => deleteFile(this.service, item.id));
+    await Promise.all(promises);
+    this.itemsPromise = null; // Invalidate cached items
+  }
+
+  async delete(key) {
+    const items = await this.getItems();
+    const item = items[key];
+    if (!item) {
+      return false;
+    }
+
+    await deleteFile(this.service, item.id);
+    this.itemsPromise = null; // Invalidate cached items
+    return true;
+  }
+
   async get(key) {
     if (key == null) {
       // Reject nullish key.
@@ -42,7 +64,7 @@ export default class GoogleDriveMap extends AsyncMap {
       "application/vnd.google-apps.folder": (auth, id) =>
         Reflect.construct(this.constructor, [auth, id]),
     };
-    const loader = googleFileTypes[item.mimeType] || getGoogleDriveFile;
+    const loader = googleFileTypes[item.mimeType] || getFile;
     const value = await loader(this.auth, item.id);
     return value;
   }
@@ -86,9 +108,41 @@ export default class GoogleDriveMap extends AsyncMap {
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  async set(key, value) {
+    // Does the file already exist?
+    const items = await this.getItems();
+    const item = items[key];
+
+    if (item) {
+      await updateFile(this.service, item.id, key, value);
+    } else {
+      await createFile(this.service, this.folderId, key, value);
+    }
+
+    return this;
+  }
 }
 
-async function getGoogleDriveFile(auth, fileId) {
+async function createFile(service, folderId, name, body) {
+  try {
+    await service.files.create({
+      requestBody: {
+        name: name,
+        parents: [folderId],
+      },
+      media: {
+        body,
+      },
+      uploadType: "media",
+    });
+  } catch (e) {
+    const message = `Error ${e.code} ${e.response.statusText} creating file ${name}: ${e.message}`;
+    console.error(message);
+  }
+}
+
+async function getFile(auth, fileId) {
   const params = {
     alt: "media",
     fileId,
@@ -110,4 +164,30 @@ async function getGoogleDriveFile(auth, fileId) {
     buffer = Buffer.from(buffer);
   }
   return buffer;
+}
+
+async function deleteFile(service, fileId) {
+  try {
+    await service.files.delete({
+      fileId,
+    });
+  } catch (e) {
+    const message = `Error ${e.code} ${e.response.statusText} deleting file ${fileId}: ${e.message}`;
+    console.error(message);
+  }
+}
+
+async function updateFile(service, fileId, name, body) {
+  try {
+    await service.files.update({
+      fileId,
+      media: {
+        body,
+      },
+      uploadType: "media",
+    });
+  } catch (e) {
+    const message = `Error ${e.code} ${e.response.statusText} updating file ${name}: ${e.message}`;
+    console.error(message);
+  }
 }
