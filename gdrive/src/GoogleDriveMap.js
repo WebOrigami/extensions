@@ -126,24 +126,28 @@ export default class GoogleDriveMap extends AsyncMap {
         // Folder exists; clear it
         const subfolder = new GoogleDriveMap(this.auth, item.id);
         await subfolder.clear();
-        return this;
+      } else {
+        if (item) {
+          // File with same name exists; delete it first.
+          await this.delete(normalized);
+        }
+        // Create subfolder
+        const data = await createFolder(
+          this.service,
+          this.folderId,
+          normalized
+        );
+        if (data) {
+          const { id, mimeType } = data;
+          this.items.set(normalized, { id, mimeType });
+        }
       }
-      if (item) {
-        // File with same name exists; delete it first.
-        await this.delete(normalized);
-      }
-      // Create subfolder
-      const data = await createFolder(this.service, this.folderId, normalized);
-      if (data) {
-        const { id, mimeType } = data;
-        this.items.set(normalized, { id, mimeType });
-      }
-    } else if (item?.mimeType !== "application/vnd.google-apps.folder") {
+    } else if (item && item.mimeType !== "application/vnd.google-apps.folder") {
       // Update existing file
       await updateFile(this.service, item.id, normalized, value);
     } else {
       if (item?.mimeType === "application/vnd.google-apps.folder") {
-        // Cannot overwrite folder with file; delete it first.
+        // Folder with same name exists; delete it first.
         await this.delete(normalized);
       }
       // Create new file
