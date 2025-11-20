@@ -22,10 +22,21 @@ describe("GoogleDriveTree", () => {
     ]);
   });
 
-  test("can get a value", async () => {
+  test("can get a file", async () => {
     const value = await fixture.get("ReadMe.md");
     const text = String(value);
     assert.equal(text, "This folder is used to test the gdrive extension.\n");
+  });
+
+  test("can get a folder", async () => {
+    const child = await fixture.get("images/");
+    assert(child instanceof fixture.constructor);
+    assert.equal(child.parent, fixture);
+    const keys = [];
+    for await (const key of child.keys()) {
+      keys.push(key);
+    }
+    assert.deepEqual(keys, ["kingfisher.jpg", "van.jpg", "venice.jpg"]);
   });
 
   test("can create and delete a value", async () => {
@@ -56,7 +67,9 @@ describe("GoogleDriveTree", () => {
       await fixture.delete(key);
     }
 
-    await fixture.set(key, fixture.constructor.EMPTY);
+    const child = await fixture.child(key);
+    assert(child instanceof fixture.constructor);
+    assert.equal(child.parent, fixture);
     assert(await fixture.has(key));
 
     const deleted = await fixture.delete(key);

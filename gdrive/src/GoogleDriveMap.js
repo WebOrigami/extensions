@@ -1,4 +1,9 @@
-import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
+import {
+  AsyncMap,
+  naturalOrder,
+  trailingSlash,
+  Tree,
+} from "@weborigami/async-tree";
 import { google } from "googleapis";
 import { Readable } from "node:stream";
 import gdoc from "./gdoc.js";
@@ -31,15 +36,43 @@ export default class GoogleDriveMap extends AsyncMap {
     this.items = null;
   }
 
+  // Return the (possibly new) subdirectory with the given key.
+  async child(key) {
+    const items = await this.getItems();
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
+
+    let childId;
+    if (item && item.mimeType === "application/vnd.google-apps.folder") {
+      // Folder already exists
+      childId = item.id;
+    } else {
+      if (item) {
+        // File with same name exists; delete it first.
+        await this.delete(normalized);
+      }
+      // Create subfolder
+      const data = await createFolder(this.service, this.folderId, normalized);
+      const { id, mimeType } = data;
+      this.items.set(normalized, { id, mimeType });
+      childId = data.id;
+    }
+
+    const result = new this.constructor(this.auth, childId);
+    result.parent = this;
+    return result;
+  }
+
   async delete(key) {
     const items = await this.getItems();
-    const item = items.get(key);
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
     if (!item) {
       return false;
     }
 
     await deleteFile(this.service, item.id);
-    this.items.delete(key);
+    this.items.delete(normalized);
     return true;
   }
 
@@ -66,6 +99,9 @@ export default class GoogleDriveMap extends AsyncMap {
     };
     const loader = googleFileTypes[item.mimeType] || getFile;
     const value = await loader(this.auth, item.id);
+    if (Tree.isMap(value)) {
+      value.parent = this;
+    }
     return value;
   }
 
@@ -120,29 +156,7 @@ export default class GoogleDriveMap extends AsyncMap {
     const normalized = trailingSlash.remove(key);
     const item = items.get(normalized);
 
-    if (value === this.constructor.EMPTY) {
-      // Create or clear subfolder
-      if (item?.mimeType === "application/vnd.google-apps.folder") {
-        // Folder exists; clear it
-        const subfolder = new GoogleDriveMap(this.auth, item.id);
-        await subfolder.clear();
-      } else {
-        if (item) {
-          // File with same name exists; delete it first.
-          await this.delete(normalized);
-        }
-        // Create subfolder
-        const data = await createFolder(
-          this.service,
-          this.folderId,
-          normalized
-        );
-        if (data) {
-          const { id, mimeType } = data;
-          this.items.set(normalized, { id, mimeType });
-        }
-      }
-    } else if (item && item.mimeType !== "application/vnd.google-apps.folder") {
+    if (item && item.mimeType !== "application/vnd.google-apps.folder") {
       // Update existing file
       await updateFile(this.service, item.id, normalized, value);
     } else {
@@ -157,10 +171,8 @@ export default class GoogleDriveMap extends AsyncMap {
         normalized,
         value
       );
-      if (data) {
-        const { id, mimeType } = data;
-        this.items.set(normalized, { id, mimeType });
-      }
+      const { id, mimeType } = data;
+      this.items.set(normalized, { id, mimeType });
     }
 
     return this;
@@ -183,13 +195,12 @@ async function createFile(service, folderId, name, body) {
       },
       uploadType: "media",
     });
-    return response?.data;
+    return response.data;
   } catch (e) {
     const message = `Error ${e.code} ${
       e.response?.statusText ?? ""
     } creating file ${name}: ${e.message}`;
-    console.error(message);
-    return null;
+    throw new Error(message);
   }
 }
 
@@ -202,13 +213,12 @@ async function createFolder(service, parentFolderId, name) {
         parents: [parentFolderId],
       },
     });
-    return response?.data;
+    return response.data;
   } catch (e) {
     const message = `Error ${e.code} ${
       e.response?.statusText ?? ""
     } creating folder ${name}: ${e.message}`;
-    console.error(message);
-    return null;
+    throw new Error(message);
   }
 }
 
@@ -277,6 +287,6 @@ async function updateFile(service, fileId, name, body) {
     const message = `Error ${e.code} ${
       e.response?.statusText ?? ""
     } updating file ${name}: ${e.message}`;
-    console.error(message);
+    throw new Error(message);
   }
 }
