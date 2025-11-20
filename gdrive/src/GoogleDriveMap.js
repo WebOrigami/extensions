@@ -116,33 +116,43 @@ export default class GoogleDriveMap extends AsyncMap {
 
   async set(key, value) {
     // Does the file already exist?
-    const items = await this.getItems();
+    let items = await this.getItems();
     const normalized = trailingSlash.remove(key);
     const item = items.get(normalized);
 
     if (value === this.constructor.EMPTY) {
-      // Create subfolder
-      if (item && item.mimeType !== "application/vnd.google-apps.folder") {
-        throw new Error(
-          `${this.constructor.name}: Cannot create folder ${key}, a file with that name already exists.`
-        );
-      } else if (!item) {
-        const data = await createFolder(
-          this.service,
-          this.folderId,
-          normalized
-        );
-        if (data) {
-          const { id, mimeType } = data;
-          this.items.set(normalized, { id, mimeType });
-        }
+      // Create or clear subfolder
+      if (item?.mimeType === "application/vnd.google-apps.folder") {
+        // Folder exists; clear it
+        const subfolder = new GoogleDriveMap(this.auth, item.id);
+        await subfolder.clear();
+        return this;
       }
-    } else if (item) {
+      if (item) {
+        // File with same name exists; delete it first.
+        await this.delete(normalized);
+      }
+      // Create subfolder
+      const data = await createFolder(this.service, this.folderId, normalized);
+      if (data) {
+        const { id, mimeType } = data;
+        this.items.set(normalized, { id, mimeType });
+      }
+    } else if (item?.mimeType !== "application/vnd.google-apps.folder") {
       // Update existing file
-      await updateFile(this.service, item.id, key, value);
+      await updateFile(this.service, item.id, normalized, value);
     } else {
+      if (item?.mimeType === "application/vnd.google-apps.folder") {
+        // Cannot overwrite folder with file; delete it first.
+        await this.delete(normalized);
+      }
       // Create new file
-      const data = await createFile(this.service, this.folderId, key, value);
+      const data = await createFile(
+        this.service,
+        this.folderId,
+        normalized,
+        value
+      );
       if (data) {
         const { id, mimeType } = data;
         this.items.set(normalized, { id, mimeType });
