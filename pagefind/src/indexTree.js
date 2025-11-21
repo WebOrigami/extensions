@@ -47,13 +47,19 @@ async function addTreeToIndex(treelike, options) {
   const { index, basePath } = options;
   for await (const key of tree.keys()) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
-    const value = await tree.get(key);
-    if (Tree.isMap(value)) {
+
+    // Only get value if we think it's a subtree or HTML file
+    const getChild = tree.trailingSlashKeys ? trailingSlash.has(key) : true;
+    let value = getChild ? await tree.get(key) : undefined;
+
+    if (Tree.isMaplike(value)) {
       // Child node
       await addTreeToIndex(value, { index, basePath: path });
       continue;
     } else if (key.endsWith(".html")) {
       // HTML file
+      // Retrieve value if we don't already have it
+      value ??= await tree.get(key);
       const result = await index.addHTMLFile({
         url: path,
         content: toString(value),
