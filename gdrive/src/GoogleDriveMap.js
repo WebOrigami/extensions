@@ -1,8 +1,8 @@
 import {
   AsyncMap,
   naturalOrder,
+  setParent,
   trailingSlash,
-  Tree,
 } from "@weborigami/async-tree";
 import { google } from "googleapis";
 import { Readable } from "node:stream";
@@ -24,7 +24,7 @@ const googleExtensions = {
  * cached for subsequent access. If files are added or removed outside of this
  * class, the cache will become out of date.
  *
- * @implements {import("@weborigami/async-tree").AsyncTree}
+ * @implements {import("@weborigami/async-tree").AsyncTree<GoogleDriveMap>}
  */
 export default class GoogleDriveMap extends AsyncMap {
   constructor(auth, folderId) {
@@ -99,9 +99,7 @@ export default class GoogleDriveMap extends AsyncMap {
     };
     const loader = googleFileTypes[item.mimeType] || getFile;
     const value = await loader(this.auth, item.id);
-    if (Tree.isMap(value)) {
-      value.parent = this;
-    }
+    setParent(value, this);
     return value;
   }
 
