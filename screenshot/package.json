@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/screenshot",
-  "version": "0.0.6",
+  "version": "0.0.15",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "puppeteer": "24.16.1"
+    "puppeteer": "24.31.0"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
