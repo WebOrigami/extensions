@@ -15,21 +15,64 @@ describe("GoogleDriveTree", () => {
       keys.push(key);
     }
     assert.deepEqual(keys, [
-      "images",
+      "images/",
       "ReadMe.md",
       "Sample.gdoc",
       "Team.gsheet",
     ]);
   });
 
-  test("can get a value", async () => {
+  test("can get a file", async () => {
     const value = await fixture.get("ReadMe.md");
     const text = String(value);
     assert.equal(text, "This folder is used to test the gdrive extension.\n");
   });
 
-  test("can test whether a key is for a subtree", async () => {
-    assert(await fixture.isKeyForSubtree("images"));
-    assert(!(await fixture.isKeyForSubtree("ReadMe.md")));
+  test("can get a folder", async () => {
+    const child = await fixture.get("images/");
+    assert(child instanceof fixture.constructor);
+    assert.equal(child.parent, fixture);
+    const keys = [];
+    for await (const key of child.keys()) {
+      keys.push(key);
+    }
+    assert.deepEqual(keys, ["kingfisher.jpg", "van.jpg", "venice.jpg"]);
+  });
+
+  test("can create and delete a value", async () => {
+    const key = "NewFile.txt";
+    const value = "Hello, world!";
+
+    if (await fixture.has(key)) {
+      // We want to test creation, delete existing file
+      await fixture.delete(key);
+    }
+
+    await fixture.set(key, value);
+    const actualValue = await fixture.get(key);
+    const text = String(actualValue);
+    assert.equal(text, value);
+
+    const deleted = await fixture.delete(key);
+    assert(deleted);
+
+    assert(!(await fixture.has(key)));
+  });
+
+  test("can create a subfolder", async () => {
+    const key = "New Folder";
+
+    if (await fixture.has(key)) {
+      // We want to test creation, delete existing folder
+      await fixture.delete(key);
+    }
+
+    const child = await fixture.child(key);
+    assert(child instanceof fixture.constructor);
+    assert.equal(child.parent, fixture);
+    assert(await fixture.has(key));
+
+    const deleted = await fixture.delete(key);
+    assert(deleted);
   });
 });

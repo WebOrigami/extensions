@@ -1,5 +1,11 @@
-import { AsyncMap, naturalOrder } from "@weborigami/async-tree";
+import {
+  AsyncMap,
+  naturalOrder,
+  setParent,
+  trailingSlash,
+} from "@weborigami/async-tree";
 import { google } from "googleapis";
+import { Readable } from "node:stream";
 import gdoc from "./gdoc.js";
 import gsheet from "./gsheet.js";
 
@@ -9,9 +15,16 @@ const googleExtensions = {
 };
 
 /**
- * A Google Drive folder as an async map.
+ * A Google Drive folder as an async map
  *
- * @implements {import("@weborigami/async-tree").AsyncTree}
+ * Google Drive requires that all folders and files be accessed by ID. This is
+ * cumbersome, since we want to enable access by name. Therefore, this class
+ * maintains an internal map of file names to file IDs for the folder it
+ * represents. This map is loaded on demand the first time it is needed, and
+ * cached for subsequent access. If files are added or removed outside of this
+ * class, the cache will become out of date.
+ *
+ * @implements {import("@weborigami/async-tree").AsyncTree<GoogleDriveMap>}
  */
 export default class GoogleDriveMap extends AsyncMap {
   constructor(auth, folderId) {
@@ -20,6 +33,47 @@ export default class GoogleDriveMap extends AsyncMap {
     this.service = google.drive({ version: "v3", auth });
     this.folderId = folderId;
     this.itemsPromise = null;
+    this.items = null;
+  }
+
+  // Return the (possibly new) subdirectory with the given key.
+  async child(key) {
+    const items = await this.getItems();
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
+
+    let childId;
+    if (item && item.mimeType === "application/vnd.google-apps.folder") {
+      // Folder already exists
+      childId = item.id;
+    } else {
+      if (item) {
+        // File with same name exists; delete it first.
+        await this.delete(normalized);
+      }
+      // Create subfolder
+      const data = await createFolder(this.service, this.folderId, normalized);
+      const { id, mimeType } = data;
+      this.items.set(normalized, { id, mimeType });
+      childId = data.id;
+    }
+
+    const result = new this.constructor(this.auth, childId);
+    result.parent = this;
+    return result;
+  }
+
+  async delete(key) {
+    const items = await this.getItems();
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
+    if (!item) {
+      return false;
+    }
+
+    await deleteFile(this.service, item.id);
+    this.items.delete(normalized);
+    return true;
   }
 
   async get(key) {
@@ -31,7 +85,8 @@ export default class GoogleDriveMap extends AsyncMap {
     }
 
     const items = await this.getItems();
-    const item = items[key];
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
     if (!item) {
       return undefined;
     }
@@ -42,13 +97,18 @@ export default class GoogleDriveMap extends AsyncMap {
       "application/vnd.google-apps.folder": (auth, id) =>
         Reflect.construct(this.constructor, [auth, id]),
     };
-    const loader = googleFileTypes[item.mimeType] || getGoogleDriveFile;
+    const loader = googleFileTypes[item.mimeType] || getFile;
     const value = await loader(this.auth, item.id);
+    setParent(value, this);
     return value;
   }
 
   async getItems() {
-    if (this.itemsPromise) {
+    if (this.items) {
+      // Return cached items
+      return this.items;
+    } else if (this.itemsPromise) {
+      // Return pending promise
       return this.itemsPromise;
     }
 
@@ -59,36 +119,108 @@ export default class GoogleDriveMap extends AsyncMap {
     };
 
     this.itemsPromise = this.service.files.list(params).then((response) => {
-      const items = {};
+      const items = new Map();
       for (const file of response.data.files) {
         const { id, mimeType } = file;
         const extension = googleExtensions[mimeType] || "";
         const name = file.name + extension;
-        items[name] = { id, mimeType };
+        items.set(name, { id, mimeType });
       }
       return items;
     });
 
-    return this.itemsPromise;
-  }
-
-  async isKeyForSubtree(key) {
-    const items = await this.getItems();
-    const item = items[key];
-    return item?.mimeType === "application/vnd.google-apps.folder";
+    this.items = await this.itemsPromise;
+    return this.items;
   }
 
   async *keys() {
     const items = await this.getItems();
-    const keys = Object.keys(items);
+    // Add trailing slashes to folder keys
+    const keys = Array.from(items.entries()).map(([key, item]) =>
+      trailingSlash.toggle(
+        key,
+        item.mimeType === "application/vnd.google-apps.folder"
+      )
+    );
     // Origami tree drivers generally use natural sort order. For reference,
     // Google Drive's own UI uses what seems to be natural sort order.
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  async set(key, value) {
+    // Does the file already exist?
+    let items = await this.getItems();
+    const normalized = trailingSlash.remove(key);
+    const item = items.get(normalized);
+
+    if (item && item.mimeType !== "application/vnd.google-apps.folder") {
+      // Update existing file
+      await updateFile(this.service, item.id, normalized, value);
+    } else {
+      if (item?.mimeType === "application/vnd.google-apps.folder") {
+        // Folder with same name exists; delete it first.
+        await this.delete(normalized);
+      }
+      // Create new file
+      const data = await createFile(
+        this.service,
+        this.folderId,
+        normalized,
+        value
+      );
+      const { id, mimeType } = data;
+      this.items.set(normalized, { id, mimeType });
+    }
+
+    return this;
+  }
+
+  get trailingSlashKeys() {
+    return true;
+  }
 }
 
-async function getGoogleDriveFile(auth, fileId) {
+async function createFile(service, folderId, name, body) {
+  try {
+    const response = await service.files.create({
+      requestBody: {
+        name: name,
+        parents: [folderId],
+      },
+      media: {
+        body: toReadable(body),
+      },
+      uploadType: "media",
+    });
+    return response.data;
+  } catch (e) {
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } creating file ${name}: ${e.message}`;
+    throw new Error(message);
+  }
+}
+
+async function createFolder(service, parentFolderId, name) {
+  try {
+    const response = await service.files.create({
+      requestBody: {
+        name: name,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [parentFolderId],
+      },
+    });
+    return response.data;
+  } catch (e) {
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } creating folder ${name}: ${e.message}`;
+    throw new Error(message);
+  }
+}
+
+async function getFile(auth, fileId) {
   const params = {
     alt: "media",
     fileId,
@@ -101,7 +233,9 @@ async function getGoogleDriveFile(auth, fileId) {
     const service = google.drive({ version: "v3", auth });
     response = await service.files.get(params, options);
   } catch (e) {
-    const message = `Error ${e.code}  ${e.response.statusText} getting file ${fileId}: ${e.message}`;
+    const message = `Error ${e.code}  ${
+      e.response?.statusText ?? ""
+    } getting file ${fileId}: ${e.message}`;
     console.error(message);
     return undefined;
   }
@@ -110,4 +244,47 @@ async function getGoogleDriveFile(auth, fileId) {
     buffer = Buffer.from(buffer);
   }
   return buffer;
+}
+
+async function deleteFile(service, fileId) {
+  try {
+    await service.files.delete({
+      fileId,
+    });
+  } catch (e) {
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } deleting file ${fileId}: ${e.message}`;
+    console.error(message);
+  }
+}
+
+// The Google Drive API client library does better with streams for uploads.
+function toReadable(body) {
+  if (body && typeof body.pipe === "function") {
+    // Already a stream
+    return body;
+  } else if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
+    // Uint8Array or ArrayBuffer → single binary chunk
+    const chunk = body instanceof Uint8Array ? body : new Uint8Array(body);
+    return Readable.from([chunk]); // NOTE: [chunk], not chunk
+  }
+  return Readable.from(body); // String, etc.
+}
+
+async function updateFile(service, fileId, name, body) {
+  try {
+    await service.files.update({
+      fileId,
+      media: {
+        body: toReadable(body),
+      },
+      uploadType: "media",
+    });
+  } catch (e) {
+    const message = `Error ${e.code} ${
+      e.response?.statusText ?? ""
+    } updating file ${name}: ${e.message}`;
+    throw new Error(message);
+  }
 }
