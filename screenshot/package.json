@@ -4,7 +4,9 @@
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "puppeteer": "24.31.0"
+    "@weborigami/async-tree": "0.6.2",
+    "@weborigami/origami": "0.6.2",
+    "puppeteer": "24.32.1"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
