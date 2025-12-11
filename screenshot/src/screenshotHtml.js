@@ -7,8 +7,10 @@ const fakeHost = "http://screenshot.local";
 /**
  * Return a screenshot of the given input HTML.
  *
+ * @typedef {import("@weborigami/async-tree").SyncOrAsyncTree} SyncOrAsyncTree
+ *
  * @param {string|ArrayBuffer|TypedArray|{ toString: function }} input
- * @param {{ deviceScaleFactor: number, height: number, width: number }} options
+ * @param {{ deviceScaleFactor: number, height: number, resources: SyncOrAsyncTree, width: number }} options
  */
 export default async function screenshotHtml(input, options = {}) {
   const html = toString(input);
@@ -24,10 +26,15 @@ export default async function screenshotHtml(input, options = {}) {
   return screenshot(async (page) => {
     await page.setRequestInterception(true);
     page.on("request", (request) => respondToRequest(request, resources));
+
+    // This initial navigation is needed to set the correct origin.
     await page.goto(fakeHost, { waitUntil: "domcontentloaded" });
+
+    // Set the HTML content
     await page.setContent(html);
+
+    // Wait for things to be ready
     await page.waitForNetworkIdle();
-    // Wait for fonts to load
     await page.evaluate(async () => {
       await document.fonts.ready;
     });
