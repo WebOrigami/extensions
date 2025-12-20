@@ -1,7 +1,7 @@
 import { ObjectTree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import liquidHandler from "../src/liquid.handler.js";
+import liquidHandler from "../src/liquid_handler.js";
 
 describe("Liquid extension handler", () => {
   test("returns a function that applies a Liquid template", async () => {

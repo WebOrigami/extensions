@@ -1,3 +1,3 @@
 {
-  liquid.handler = src/liquid.handler.js/
+  liquid_handler = src/liquid_handler.js/
 }

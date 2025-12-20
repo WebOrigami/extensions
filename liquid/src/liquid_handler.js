@@ -70,9 +70,9 @@ function liquidFs(tree) {
       return path.dirname(filePath);
     },
 
-    // TODO
     async exists(filePath) {
-      return true;
+      const value = await this.readFile(filePath);
+      return value !== undefined;
     },
 
     async readFile(filePath) {
