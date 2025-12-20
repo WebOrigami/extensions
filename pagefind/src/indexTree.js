@@ -11,10 +11,11 @@ const TypedArray = Object.getPrototypeOf(Uint8Array);
  * @typedef {import("@weborigami/async-tree").Treelike} Treelike
  * @param {Treelike} treelike
  * @param {string} [basePath]
+ * @param {Object} [config] - Pagefind configuration options (camelCase)
  * @returns {Treelike}
  */
-export default async function indexTree(treelike, basePath = "") {
-  const { index } = await pagefind.createIndex();
+export default async function indexTree(treelike, basePath = "", config = {}) {
+  const { index } = await pagefind.createIndex(config);
 
   // Add everything in the input tree to the index.
   await addTreeToIndex(treelike, { index, basePath });
@@ -44,23 +45,24 @@ function addValueToObject(object, keys, value) {
 async function addTreeToIndex(treelike, options) {
   const tree = Tree.from(treelike);
   const { index, basePath } = options;
-  for (const key of await tree.keys()) {
+  for await (const key of tree.keys()) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
-    if (Tree.isTreelike(value)) {
+    if (Tree.isMap(value)) {
+      // Child node
       await addTreeToIndex(value, { index, basePath: path });
       continue;
-    } else if (!key.endsWith(".html")) {
-      continue;
-    }
-    const result = await index.addHTMLFile({
-      url: path,
-      content: toString(value),
-    });
-    if (result.errors?.length > 0) {
-      console.error(
-        `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
-      );
+    } else if (key.endsWith(".html")) {
+      // HTML file
+      const result = await index.addHTMLFile({
+        url: path,
+        content: toString(value),
+      });
+      if (result.errors?.length > 0) {
+        console.error(
+          `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
+        );
+      }
     }
   }
 }

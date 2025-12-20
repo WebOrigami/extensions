@@ -1,5 +1,5 @@
 import {
-  DeepMapTree,
+  SyncMap,
   Tree,
   keysFromPath,
   trailingSlash,
@@ -43,7 +43,7 @@ export default {
 
     const zip = new Zip(buffer);
 
-    const files = new Map();
+    const files = new SyncMap();
     for (const entry of zip.getEntries()) {
       const path = entry.entryName;
 
@@ -62,12 +62,15 @@ export default {
       addToMap(files, path, value);
     }
 
-    // Convert deep map structure to async tree.
-    const tree = new (InvokeFunctionsTransform(
-      HandleExtensionsTransform(DeepMapTree)
-    ))(files);
-    tree.parent = options?.parent;
-    return tree;
+    // The final tree will include extension handlers and have functions invoked
+    // to retrieve data from the ZIP file. While the base map is a SyncMap, the
+    // final tree will be async.
+    const withFunctions = Tree.invokeFunctions(
+      new (HandleExtensionsTransform(SyncMap))(files)
+    );
+    withFunctions.parent = options?.parent;
+
+    return withFunctions;
   },
 };
 
@@ -85,29 +88,19 @@ function addToMap(map, path, value) {
   const filename = keys.pop();
 
   // Traverse to the appropriate parent, creating submaps as needed.
-  let parent = map;
+  let current = map;
   for (const key of keys) {
-    if (!parent.has(key)) {
-      parent.set(key, new Map());
+    if (!current.has(key)) {
+      /** @type {any} */
+      const mapClass = current.constructor;
+      const empty = mapClass.EMPTY ?? new mapClass();
+      current.set(key, empty);
     }
-    parent = parent.get(key);
+    current = current.get(key);
   }
 
-  // Set the value in the final parent.
-  parent.set(filename, value);
-}
-
-// TODO: Use invokeFunctions instead
-function InvokeFunctionsTransform(Base) {
-  return class InvokeFunctions extends Base {
-    async get(key) {
-      let value = await super.get(key);
-      if (typeof value === "function") {
-        value = await value();
-      }
-      return value;
-    }
-  };
+  // Set the value in the final map.
+  current.set(filename, value);
 }
 
 /**
@@ -120,10 +113,10 @@ function InvokeFunctionsTransform(Base) {
  */
 async function traversePaths(treelike, fn, base = "") {
   const tree = Tree.from(treelike, { deep: true });
-  for (const key of await tree.keys()) {
+  for await (const key of tree.keys()) {
     const path = base ? `${trailingSlash.remove(base)}/${key}` : key;
     const value = await tree.get(key);
-    if (Tree.isTreelike(value)) {
+    if (Tree.isMaplike(value)) {
       await traversePaths(value, fn, path);
     } else {
       await fn(value, path);

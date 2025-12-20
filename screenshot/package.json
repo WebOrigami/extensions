@@ -1,10 +1,12 @@
 {
   "name": "@weborigami/screenshot",
-  "version": "0.0.6",
+  "version": "0.0.16",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "puppeteer": "24.16.1"
+    "@weborigami/async-tree": "0.6.2",
+    "@weborigami/origami": "0.6.2",
+    "puppeteer": "24.32.1"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"

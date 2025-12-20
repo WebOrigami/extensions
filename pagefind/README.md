@@ -4,7 +4,7 @@ The [Cherokee Myths](https://github.com/WebOrigami/cherokee-myths) sample site d
 
 ## Usage
 
-1. Add this `@weborigami/pagefine` extension to your Origami project's dependencies and `npm install`.
+1. Add this `@weborigami/pagefind` extension to your Origami project's dependencies and `npm install`.
 2. Add a link to your site's definition to invoke Pagefind. Pass in the tree of content you would like it to index; see below for how to do this.
 3. Add a search page like `search.html` to your site. This page will need to reference the Pagefind CSS and JavaScript files. It will also need to define a search box element, add an event handler to upgrade that element on page load to a useable search box.
 
@@ -70,7 +70,7 @@ If you have multiple areas, you can pass them together:
 During local development of your site, the above definition will regenerate the `pagefind` area each time you visit it. To avoid that, you can wrap the `pagefind/` definition in a call to the [once](https://weborigami.org/builtins/origami/once) builtin. This will only call Pagefind the first time any resource in the `pagefind/` area is requested.
 
 ```
-  pagefind/ = once(() => package:@weborigami/pagefind({ stories }))
+  pagefind/ = Origami.once(() => package:@weborigami/pagefind({ stories }))
 ```
 
 ### Identifying the indexable parts of your site
@@ -90,6 +90,18 @@ If you have many things you'd like to include, it may be helpful to name all the
   ...indexable
   
   // And also index all that content
-  pagefind/ = once(() => package:@weborigami/pagefind(indexable))
+  pagefind/ = Origami.once(() => package:@weborigami/pagefind(indexable))
 }
+```
+
+### Using Pagefind configuration options
+
+You can supply [Pagefind configuration options](https://pagefind.app/docs/config-options/) by writing them in camelCase.
+
+```
+  pagefind/ = Origami.once(() => package:@weborigami/pagefind(indexable, "", {
+    rootSelector: "main",
+    forceLanguage: "en",
+    writePlayground: true
+  }))
 ```

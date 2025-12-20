@@ -1,11 +1,12 @@
-import { naturalOrder, trailingSlash } from "@weborigami/async-tree";
+import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
 import fetchWithBackoff from "./fetchWithBackoff.js";
 
 /**
- * A Dropbox folder as an AsyncTree.
+ * A Dropbox folder as an async map.
  */
-export default class DropboxTree {
+export default class DropboxMap extends AsyncMap {
   constructor(accessToken, path) {
+    super();
     this.accessToken = accessToken;
     if (path === undefined || path === "/") {
       // Dropbox wants the root path as the empty string.
@@ -46,7 +47,7 @@ export default class DropboxTree {
     const normalizedKey = trailingSlash.remove(key);
 
     // HACK: For now we don't allow lookup of Origami extension handlers.
-    if (normalizedKey.endsWith(".handler")) {
+    if (normalizedKey.endsWith("_handler")) {
       return undefined;
     }
 
@@ -124,14 +125,14 @@ export default class DropboxTree {
   }
 
   // Get the contents of this folder.
-  async keys() {
+  async *keys() {
     const items = await this.getItems();
     const keys = Object.keys(items);
     // Dropbox seems to return keys in an almost-but-not-quite sorted order. In
     // any event, Origami tree drivers generally use natural sort order. For
     // reference, Dropbox's own UI uses what seems to be natural sort order.
     keys.sort(naturalOrder);
-    return keys;
+    yield* keys;
   }
 }
 

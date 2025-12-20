@@ -1,17 +1,20 @@
-import { scope, toString, Tree } from "@weborigami/async-tree";
+import { toString, Tree } from "@weborigami/async-tree";
+import { projectRoot } from "@weborigami/language";
 import { build } from "esbuild";
 import path from "node:path";
+import process from "node:process";
 
 const defaultEntryPoint = "./index.js";
 
 /**
- *
  * @param {import("@weborigami/async-tree").Treelike} treelike
  * @param {any} options
- * @returns
  */
 export default async function esbuild(treelike, options = {}) {
   const localTree = await Tree.from(treelike);
+
+  const currentDir = options.absWorkingDir ?? process.cwd();
+  const root = await projectRoot(currentDir);
 
   let { entryPoints } = options;
   if (entryPoints === undefined) {
@@ -32,7 +35,7 @@ export default async function esbuild(treelike, options = {}) {
     plugins: [
       ...(options.plugins ?? []),
       asyncTreeFilesPlugin(localTree),
-      projectNodeModulesPlugin(this),
+      await projectNodeModulesPlugin(root),
     ],
     write: false,
   });
@@ -125,8 +128,8 @@ function loader(filePath) {
 }
 
 // Resolves package imports using the project's local node-modules
-function projectNodeModulesPlugin(context) {
-  const contextScope = context ? scope(context) : null;
+async function projectNodeModulesPlugin(root) {
+  const projectRootScope = await Tree.scope(root);
 
   // We don't handle imports that start with a built-in namespace like `node:`
   // or `file:`.
@@ -151,7 +154,7 @@ function projectNodeModulesPlugin(context) {
       build.onLoad(
         { filter: /^/, namespace: "project-node-modules-url" },
         async (args) => {
-          nodeModules ??= await contextScope.get("node_modules");
+          nodeModules ??= await projectRootScope.get("node_modules");
           const packageRoot = await Tree.traversePath(nodeModules, args.path);
           const buffer = await packageRoot.get("package.json");
           const json = toString(buffer);

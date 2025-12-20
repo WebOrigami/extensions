@@ -1,5 +1,5 @@
 import {
-  DeepObjectTree,
+  DeepObjectMap,
   keysFromPath,
   toString,
   Tree,
@@ -24,12 +24,12 @@ export default async function host(treelike) {
 
 /**
  * A TypeScript compiler host that reads and writes files from a plain object.
- * This subclasses DeepObjectTree so that it can be used as an AsyncTree too.
+ * This subclasses DeepObjectMap so that it can be used as a map-based tree too.
  *
  * Note: TypeScript docs call the first argument to functions like getSourceFile
  * and writeFile `fileName`, but it's actually a slash-separated path.
  */
-class TreeCompilerHost extends DeepObjectTree {
+class TreeCompilerHost extends DeepObjectMap {
   fileExists(filePath) {
     return traversePath(this.object, filePath) !== undefined;
   }

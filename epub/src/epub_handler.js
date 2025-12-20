@@ -1,5 +1,5 @@
-import { Tree } from "@weborigami/async-tree";
-import zipHandler from "@weborigami/zip";
+import { AsyncMap, Tree } from "@weborigami/async-tree";
+import zip_handler from "@weborigami/zip";
 
 /**
  * Handler for EPUB files
@@ -17,28 +17,28 @@ export default {
    */
   async pack(treelike) {
     const tree = Tree.from(treelike);
-    return zipHandler.pack(mimetypeFirst(tree));
+    return zip_handler.pack(mimetypeFirst(tree));
   },
 
-  unpack: zipHandler.unpack,
+  unpack: zip_handler.unpack,
 };
 
 // A tree with its `mimetype` file first
 function mimetypeFirst(tree) {
-  return {
+  return Object.assign(new AsyncMap(), {
     async get(key) {
       return tree.get(key);
     },
 
-    async keys() {
-      const keys = [...(await tree.keys())];
+    async *keys() {
+      const keys = await Tree.keys(tree);
       // Move `mimetype` (if present) to the front of the list.
       const index = keys.indexOf("mimetype");
       if (index >= 0) {
         keys.splice(index, 1);
         keys.unshift("mimetype");
       }
-      return keys;
+      yield* keys;
     },
-  };
+  });
 }

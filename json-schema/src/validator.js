@@ -1,9 +1,4 @@
-import {
-  isUnpackable,
-  scope,
-  trailingSlash,
-  Tree,
-} from "@weborigami/async-tree";
+import { isUnpackable, trailingSlash, Tree } from "@weborigami/async-tree";
 
 // Uses 2020 draft JSON Schema, contains breaking changes from earlier drafts
 import Ajv from "ajv/dist/2020.js";
@@ -22,10 +17,10 @@ import Ajv from "ajv/dist/2020.js";
  * @returns {function}
  */
 export default async function validator(schemaTreelike, options) {
-  const context = this;
+  const container = this;
 
   const schema = await Tree.plain(schemaTreelike);
-  const loadSchema = async (uri) => getSchema(context, uri);
+  const loadSchema = async (uri) => getSchema(container, uri);
   const ajv = new Ajv(
     Object.assign(
       {
@@ -39,7 +34,7 @@ export default async function validator(schemaTreelike, options) {
 
   return async (input, key) => {
     let data;
-    if (Tree.isTreelike(input)) {
+    if (Tree.isMaplike(input)) {
       // If the input is a tree, unpack any packed values
       const unpacked = await Tree.map(input, async (item) =>
         isUnpackable(item) ? await item.unpack() : item
@@ -82,6 +77,7 @@ export default async function validator(schemaTreelike, options) {
     return input;
   };
 }
+validator.containerAsTarget = true;
 
 function formatInstance(object) {
   let text =
@@ -119,7 +115,7 @@ async function getSchema(context, uri) {
   if (keys[0] === "#" || keys[0] === ".") {
     keys.shift();
   }
-  const contextScope = scope(context);
+  const contextScope = await Tree.scope(context);
   let schema = await Tree.traverseOrThrow(contextScope, ...keys);
   if (isUnpackable(schema)) {
     schema = await schema.unpack();

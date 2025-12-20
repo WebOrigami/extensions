@@ -1,11 +1,11 @@
 {
   "name": "@weborigami/zip",
-  "version": "0.0.7",
+  "version": "0.0.15",
   "type": "module",
-  "main": "src/zip.handler.js",
+  "main": "src/zip_handler.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.0.72",
-    "@weborigami/language": "0.0.72",
+    "@weborigami/async-tree": "0.6.0",
+    "@weborigami/language": "0.6.0",
     "adm-zip": "0.5.16"
   },
   "scripts": {

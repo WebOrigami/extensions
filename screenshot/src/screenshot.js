@@ -24,6 +24,23 @@ export default async function screenshot(preparePageFn, options = {}) {
 
   // Create the page for the screenshot.
   const page = await browser.newPage();
+
+  // Uncomment for debugging; this is the only insight into page activity
+
+  // page.on("console", (msg) => {
+  //   console.log("PAGE CONSOLE:", msg.text());
+  // });
+
+  // page.on("requestfailed", (req) => {
+  //   console.log("REQUEST FAILED:", req.url(), req.failure()?.errorText);
+  // });
+
+  // page.on("requestfinished", (req) => {
+  //   if (req.resourceType() === "font") {
+  //     console.log("FONT LOADED:", req.url());
+  //   }
+  // });
+
   const pageHeight = options.height || 768;
   const pageWidth = options.width || 1024;
   const deviceScaleFactor = options.deviceScaleFactor || 1;
@@ -82,7 +99,5 @@ export default async function screenshot(preparePageFn, options = {}) {
 }
 
 async function launchBrowser() {
-  return puppeteer.launch({
-    headless: "new",
-  });
+  return puppeteer.launch({ headless: "new" });
 }

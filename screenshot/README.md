@@ -31,4 +31,29 @@ The `screenshot` functions accept an optional second `options` parameter in whic
 
 - `deviceScaleFactor`: the device scale factor: 1 (the default) for a classic 96 DPI display. Set this to 2 for HiDPI/Retina displays; this will double both the height and width of the resulting screenshot.
 - `height`: the height of the viewport in pixels.
+- `resources`: the `html` function accepts an additional, optional `resources` option; see below.
 - `width`: the width of the viewport in pixels.
+
+## Providing resources
+
+When using the `html` function, you can provide optional `resources`: a [map-based tree](https://weborigami.org/async-tree/mapbasedtree) of resources that should be used for local paths.
+
+If you have the following site:
+
+```
+// site.ori
+{
+  index.html: `
+    <link rel="stylesheeet" href="styles.css">
+    <p>This text should be read.
+  `
+
+  styles.css: `body { color: red; }`
+}
+```
+
+Then you can create a screenshot of `index.html` that uses the local stylesheet with:
+
+```
+package:@weborigami/screenshot/html(site.ori/index.html, { resources: site.ori })
+```

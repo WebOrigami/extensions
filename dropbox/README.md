@@ -1,4 +1,4 @@
-This package provides functions for treating a [Dropbox](https://www.dropbox.com) folder as an [async tree](https://weborigami.org/async-tree/interface).
+This package provides functions for treating a [Dropbox](https://www.dropbox.com) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface).
 
 ## Obtaining Dropbox credentials
 

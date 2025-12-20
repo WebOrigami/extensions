@@ -1,3 +1,3 @@
 {
-  zip.handler = src/zip.handler.js/
+  zip_handler = src/zip_handler.js/
 }
