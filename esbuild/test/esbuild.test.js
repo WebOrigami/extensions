@@ -1,3 +1,4 @@
+import { projectRootFromPath } from "@weborigami/language";
 import assert from "node:assert";
 import path from "node:path";
 import { describe, test } from "node:test";
@@ -40,6 +41,7 @@ describe("esbuild", () => {
       {
         absWorkingDir,
         entryPoints: ["app.js"],
+        projectRoot: await projectRootFromPath(absWorkingDir),
       }
     );
     // Confirm the import was resolved by looking for an expected string
