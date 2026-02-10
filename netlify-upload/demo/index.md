@@ -1,3 +1,3 @@
 # Home page
 
-This is the home page.
+This is our home page.
