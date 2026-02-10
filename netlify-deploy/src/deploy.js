@@ -1,7 +1,6 @@
 import { isUnpackable, Tree } from "@weborigami/async-tree";
+import mapLimit from "./mapLimit.js";
 import pathHashes from "./pathHashes.js";
-
-const TypedArray = Object.getPrototypeOf(Uint8Array);
 
 /**
  * Upload the given maplike to the indicated Netlify site.
@@ -79,35 +78,40 @@ export default async function deploy(options) {
 
   // Upload each required file.
   const deployUrl = `https://api.netlify.com/api/v1/deploys/${deployId}/files`;
-  for (const path of uploadPaths) {
-    const value = await Tree.traversePath(site, path);
-    const body =
-      typeof value === "string" || value instanceof String
-        ? new TextEncoder().encode(value)
-        : value;
-    const uploadUrl = `${deployUrl}/${encodePath(path)}`;
-    const uploadResponse = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Length": body.length,
-        Authorization: `Bearer ${token}`,
-      },
-      body,
-    });
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      throw new Error(
-        `Failed to upload ${path} to Netlify with status ${uploadResponse.status}: ${errorText}`,
-      );
-    }
-  }
-
-  console.log(
-    `Uploaded ${uploadPaths.length} files to Netlify.\nDeploy should be live at: ${ssl_url}`,
+  await mapLimit(
+    uploadPaths,
+    (path) => uploadFile(site, path, deployUrl, token),
+    8,
   );
+
+  console.log(`Uploaded ${uploadPaths.length} file(s) to ${ssl_url}`);
 }
 
 function encodePath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
+}
+
+// Upload the file at the given path to Netlify
+async function uploadFile(site, path, deployUrl, token) {
+  const value = await Tree.traversePath(site, path);
+  const body =
+    typeof value === "string" || value instanceof String
+      ? new TextEncoder().encode(value)
+      : value;
+  const uploadUrl = `${deployUrl}/${encodePath(path)}`;
+  const uploadResponse = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "Content-Length": body.length,
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text();
+    throw new Error(
+      `Failed to upload ${path} to Netlify with status ${uploadResponse.status}: ${errorText}`,
+    );
+  }
 }
