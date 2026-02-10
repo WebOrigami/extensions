@@ -1,0 +1,11 @@
+{
+  "name": "@weborigami/netlify-upload",
+  "version": "0.0.16",
+  "type": "module",
+  "dependencies": {
+    "@weborigami/async-tree": "0.6.9"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec"
+  }
+}
