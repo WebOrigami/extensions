@@ -6,28 +6,37 @@ const TypedArray = Object.getPrototypeOf(Uint8Array);
 /**
  * Upload the given maplike to the indicated Netlify site.
  *
- * @param {import("@weborigami/async-tree").Maplike} maplike
- * @param {{ siteId: string, token: string }} options
+ * @typedef {import("@weborigami/async-tree").Maplike} Maplike
+ *
+ * @param {{ site: Maplike, id: string, token: string }} options
  */
-export default async function deploy(maplike, options) {
-  if (isUnpackable(maplike)) {
-    maplike = await maplike.unpack();
+export default async function deploy(options) {
+  if (isUnpackable(options)) {
+    options = await options.unpack();
   }
-  let { siteId, token } = options;
-  if (!siteId) {
-    throw new ReferenceError("deploy: siteId was not provided");
+
+  let { site, id, token } = options;
+
+  if (isUnpackable(site)) {
+    site = await site.unpack();
   }
+
+  if (typeof id !== "string" || id.length === 0) {
+    throw new ReferenceError("deploy: site id was not provided");
+  }
+
   if (isUnpackable(token)) {
     token = await token.unpack();
+    token = token.trim();
   }
-  if (!token) {
+  if (typeof token !== "string" || token.length === 0) {
     throw new ReferenceError("deploy: token was not provided");
   }
 
   // Send Netlify the hashes of all files in the tree to see what it wants us to upload.
-  const files = await pathHashes(maplike);
+  const files = await pathHashes(site);
   const response = await fetch(
-    `https://api.netlify.com/api/v1/sites/${siteId}/deploys`,
+    `https://api.netlify.com/api/v1/sites/${id}/deploys`,
     {
       method: "POST",
       headers: {
@@ -49,8 +58,8 @@ export default async function deploy(maplike, options) {
 
   // console.log(data);
 
-  // See what we need to upload.
-  const { id, required, ssl_url } = data;
+  // See what files Netlify wants.
+  const { id: deployId, required, ssl_url } = data;
   if (required.length === 0) {
     console.log("No files needed to be uploaded.");
     return;
@@ -69,9 +78,9 @@ export default async function deploy(maplike, options) {
   });
 
   // Upload each required file.
-  const deployUrl = `https://api.netlify.com/api/v1/deploys/${id}/files`;
+  const deployUrl = `https://api.netlify.com/api/v1/deploys/${deployId}/files`;
   for (const path of uploadPaths) {
-    const value = await Tree.traversePath(maplike, path);
+    const value = await Tree.traversePath(site, path);
     const body =
       typeof value === "string" || value instanceof String
         ? new TextEncoder().encode(value)
