@@ -1,6 +1,7 @@
 # Sample deployment options for https://origami-netlify-upload-test.netlify.app
+# See the README for more details on this file.
 
-# name: origami-netlify-upload-test
 id: 59bca707-6a99-44b0-827d-024ba7d2ec73
+name: origami-netlify-upload-test
 site: !ori demo/site.ori/
 token: !ori token.json/

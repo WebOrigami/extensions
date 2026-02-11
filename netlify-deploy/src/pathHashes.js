@@ -1,7 +1,6 @@
 import { isUnpackable, trailingSlash, Tree } from "@weborigami/async-tree";
 import crypto from "node:crypto";
-
-const TypedArray = Object.getPrototypeOf(Uint8Array);
+import toBuffer from "./toBuffer.js";
 
 /**
  * Return an object whose keys are paths for all resources in the map-based tree
@@ -15,13 +14,14 @@ export default async function pathHashes(maplike, options = {}) {
     maplike = await maplike.unpack();
   }
   const tree = Tree.from(maplike, { deep: true });
-  const base = options.base ?? "";
+  const base = options.base ?? "/";
 
   const result = {};
 
   for await (const key of tree.keys()) {
     const separator = trailingSlash.has(base) ? "" : "/";
-    const valuePath = base ? `${base}${separator}${key}` : key;
+    const encodedKey = encodeURIComponent(trailingSlash.remove(key));
+    const valuePath = `${base}${separator}${encodedKey}`;
     const value = await tree.get(key);
     if (Tree.isMaplike(value)) {
       // Subtree; recurse
@@ -36,12 +36,6 @@ export default async function pathHashes(maplike, options = {}) {
 }
 
 function hash(value, valuePath) {
-  if (value instanceof String) {
-    value = String(value);
-  } else if (!(typeof value === "string" || value instanceof TypedArray)) {
-    throw new TypeError(
-      `Can only upload strings and buffers; couldn't upload: ${valuePath}`,
-    );
-  }
-  return crypto.createHash("sha1").update(value).digest("hex");
+  const buffer = toBuffer(value, valuePath);
+  return crypto.createHash("sha1").update(buffer).digest("hex");
 }

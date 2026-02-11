@@ -1,27 +1,39 @@
 import { isUnpackable, Tree } from "@weborigami/async-tree";
+import fetchWithBackoff from "./fetchWithBackoff.js";
 import mapLimit from "./mapLimit.js";
 import pathHashes from "./pathHashes.js";
+import toBuffer from "./toBuffer.js";
 
 /**
  * Upload the given maplike to the indicated Netlify site.
  *
  * @typedef {import("@weborigami/async-tree").Maplike} Maplike
  *
- * @param {{ site: Maplike, id: string, token: string }} options
+ * @param {{ site: Maplike, id?: string, name?: string, token: string }} options
  */
 export default async function deploy(options) {
   if (isUnpackable(options)) {
     options = await options.unpack();
   }
 
-  let { site, id, token } = options;
+  let { site, id, name, token } = options;
 
   if (isUnpackable(site)) {
     site = await site.unpack();
   }
 
-  if (typeof id !== "string" || id.length === 0) {
-    throw new ReferenceError("deploy: site id was not provided");
+  if (id === undefined && name === undefined) {
+    throw new Error(
+      "deploy: You must provide either a project name or a project/site id.",
+    );
+  }
+  if (id !== undefined && (typeof id !== "string" || id.length === 0)) {
+    throw new ReferenceError("deploy: site id must be a non-empty string.");
+  }
+  if (name !== undefined && (typeof name !== "string" || name.length === 0)) {
+    throw new ReferenceError(
+      "deploy: project name must be a non-empty string.",
+    );
   }
 
   if (isUnpackable(token)) {
@@ -32,8 +44,10 @@ export default async function deploy(options) {
     throw new ReferenceError("deploy: token was not provided");
   }
 
-  // Send Netlify the hashes of all files in the tree to see what it wants us to upload.
+  id ??= await getSiteId(name, token);
+
   const files = await pathHashes(site);
+  const body = JSON.stringify({ files });
   const response = await fetch(
     `https://api.netlify.com/api/v1/sites/${id}/deploys`,
     {
@@ -42,7 +56,7 @@ export default async function deploy(options) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ files }),
+      body,
     },
   );
 
@@ -60,7 +74,7 @@ export default async function deploy(options) {
   // See what files Netlify wants.
   const { id: deployId, required, ssl_url } = data;
   if (required.length === 0) {
-    console.log("No files needed to be uploaded.");
+    console.log(`Site is up to date: ${ssl_url}`);
     return;
   }
 
@@ -91,19 +105,36 @@ function encodePath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
 }
 
+async function getSiteId(name, token) {
+  const response = await fetch(`https://api.netlify.com/api/v1/sites`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to look up site id for project name ${name} with status ${response.status}: ${errorText}`,
+    );
+  }
+  const data = await response.json();
+  const site = data.find((site) => site.name === name);
+  if (!site) {
+    throw new Error(`No Netlify site found with name ${name}`);
+  }
+
+  return site.id;
+}
+
 // Upload the file at the given path to Netlify
 async function uploadFile(site, path, deployUrl, token) {
   const value = await Tree.traversePath(site, path);
-  const body =
-    typeof value === "string" || value instanceof String
-      ? new TextEncoder().encode(value)
-      : value;
+  const body = toBuffer(value, path);
   const uploadUrl = `${deployUrl}/${encodePath(path)}`;
-  const uploadResponse = await fetch(uploadUrl, {
+  const uploadResponse = await fetchWithBackoff(uploadUrl, {
     method: "PUT",
     headers: {
       "Content-Type": "application/octet-stream",
-      "Content-Length": body.length,
       Authorization: `Bearer ${token}`,
     },
     body,
