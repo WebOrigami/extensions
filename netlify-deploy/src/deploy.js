@@ -9,28 +9,34 @@ import toBuffer from "./toBuffer.js";
  *
  * @typedef {import("@weborigami/async-tree").Maplike} Maplike
  *
- * @param {{ site: Maplike, id?: string, name?: string, token: string }} options
+ * @param {{ site: Maplike, netlifyProjectId?: string, netlifyProjectName?: string, token: string }} options
  */
 export default async function deploy(options) {
   if (isUnpackable(options)) {
     options = await options.unpack();
   }
 
-  let { site, id, name, token } = options;
+  let { site, netlifyProjectId, netlifyProjectName, token } = options;
 
   if (isUnpackable(site)) {
     site = await site.unpack();
   }
 
-  if (id === undefined && name === undefined) {
+  if (netlifyProjectId === undefined && netlifyProjectName === undefined) {
     throw new Error(
       "deploy: You must provide either a project name or a project/site id.",
     );
   }
-  if (id !== undefined && (typeof id !== "string" || id.length === 0)) {
+  if (
+    netlifyProjectId !== undefined &&
+    (typeof netlifyProjectId !== "string" || netlifyProjectId.length === 0)
+  ) {
     throw new ReferenceError("deploy: site id must be a non-empty string.");
   }
-  if (name !== undefined && (typeof name !== "string" || name.length === 0)) {
+  if (
+    netlifyProjectName !== undefined &&
+    (typeof netlifyProjectName !== "string" || netlifyProjectName.length === 0)
+  ) {
     throw new ReferenceError(
       "deploy: project name must be a non-empty string.",
     );
@@ -44,12 +50,12 @@ export default async function deploy(options) {
     throw new ReferenceError("deploy: token was not provided");
   }
 
-  id ??= await getSiteId(name, token);
+  netlifyProjectId ??= await getNetlifyProjectId(netlifyProjectName, token);
 
   const files = await pathHashes(site);
   const body = JSON.stringify({ files });
   const response = await fetch(
-    `https://api.netlify.com/api/v1/sites/${id}/deploys`,
+    `https://api.netlify.com/api/v1/sites/${netlifyProjectId}/deploys`,
     {
       method: "POST",
       headers: {
@@ -105,7 +111,7 @@ function encodePath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
 }
 
-async function getSiteId(name, token) {
+async function getNetlifyProjectId(name, token) {
   const response = await fetch(`https://api.netlify.com/api/v1/sites`, {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -1,0 +1,6 @@
+// Deploys https://origami-netlify-upload-test.netlify.app
+package:@weborigami/netlify-deploy({
+  netlifyProjectId: "59bca707-6a99-44b0-827d-024ba7d2ec73"
+  site: demo/site.ori
+  token: token.json
+})
