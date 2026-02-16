@@ -15,9 +15,9 @@ describe("pathHashes", () => {
     };
 
     const expected = {
-      "file1.txt": "943a702d06f34599aee1f8da8ef9f7296031d699",
-      "dir/file2.txt": "afa6c8b3a2fae95785dc7d9685a57835d703ac88",
-      "dir/sub/file3.txt": "970bb9f20c46e844e228f730b8f83c9f55d5939a",
+      "/file1.txt": "943a702d06f34599aee1f8da8ef9f7296031d699",
+      "/dir/file2.txt": "afa6c8b3a2fae95785dc7d9685a57835d703ac88",
+      "/dir/sub/file3.txt": "970bb9f20c46e844e228f730b8f83c9f55d5939a",
     };
 
     const result = await pathHashes(maplike);
