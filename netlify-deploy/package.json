@@ -1,0 +1,13 @@
+{
+  "name": "@weborigami/netlify-deploy",
+  "version": "0.0.16",
+  "type": "module",
+  "main": "src/deploy.js",
+  "dependencies": {
+    "@weborigami/async-tree": "0.6.11"
+  },
+  "scripts": {
+    "deploy": "ori deploy.ori/",
+    "test": "node --test --test-reporter=spec"
+  }
+}

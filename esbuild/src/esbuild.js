@@ -1,8 +1,6 @@
 import { toString, Tree } from "@weborigami/async-tree";
-import { projectRoot } from "@weborigami/language";
 import { build } from "esbuild";
 import path from "node:path";
-import process from "node:process";
 
 const defaultEntryPoint = "./index.js";
 
@@ -13,10 +11,14 @@ const defaultEntryPoint = "./index.js";
 export default async function esbuild(treelike, options = {}) {
   const localTree = await Tree.from(treelike);
 
-  const currentDir = options.absWorkingDir ?? process.cwd();
-  const root = await projectRoot(currentDir);
+  // TODO: Origami extension options and esbuild options should be separated
+  const projectRoot = options.projectRoot ?? (await Tree.root(localTree));
+  const buildOptions = { ...options };
+  if ("projectRoot" in buildOptions) {
+    delete buildOptions.projectRoot;
+  }
 
-  let { entryPoints } = options;
+  let { entryPoints } = buildOptions;
   if (entryPoints === undefined) {
     entryPoints = [defaultEntryPoint];
   }
@@ -27,15 +29,15 @@ export default async function esbuild(treelike, options = {}) {
   );
 
   const built = await build({
-    ...options,
-    bundle: options.bundle ?? true,
+    ...buildOptions,
+    bundle: buildOptions.bundle ?? true,
     entryPoints,
-    format: options.format ?? "esm",
+    format: buildOptions.format ?? "esm",
     outdir: "out",
     plugins: [
-      ...(options.plugins ?? []),
+      ...(buildOptions.plugins ?? []),
       asyncTreeFilesPlugin(localTree),
-      await projectNodeModulesPlugin(root),
+      await projectNodeModulesPlugin(projectRoot),
     ],
     write: false,
   });
@@ -128,9 +130,7 @@ function loader(filePath) {
 }
 
 // Resolves package imports using the project's local node-modules
-async function projectNodeModulesPlugin(root) {
-  const projectRootScope = await Tree.scope(root);
-
+async function projectNodeModulesPlugin(projectRoot) {
   // We don't handle imports that start with a built-in namespace like `node:`
   // or `file:`.
   const builtinNamespaceRegex = /^[a-z]+:/;
@@ -154,7 +154,7 @@ async function projectNodeModulesPlugin(root) {
       build.onLoad(
         { filter: /^/, namespace: "project-node-modules-url" },
         async (args) => {
-          nodeModules ??= await projectRootScope.get("node_modules");
+          nodeModules ??= await projectRoot.get("node_modules");
           const packageRoot = await Tree.traversePath(nodeModules, args.path);
           const buffer = await packageRoot.get("package.json");
           const json = toString(buffer);
