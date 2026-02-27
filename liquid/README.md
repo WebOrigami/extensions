@@ -19,10 +19,10 @@ This tells Origami to use the indicated package whenever it needs to process a L
 
 You can then apply Liquid templates as functions in Origami site definitions and in the terminal via the [ori](https://weborigami.org/cli) command-line interface.
 
-The following use demos in the `demos` folder.
+Some demos are available in the `demos` folder.
 
-## Features
+## Front matter
 
-Jekyll style front matter, layout front matter available in `layout.` property
+You can add Jekyll-style front matter to a template. The front matter data is available in a `layout.` property.
 
 This extension is _not_ meant to turn Origami into a drop-in replacement for Jekyll. This does not support, for example, the full list of [template variables supported by Jekyll](https://jekyllrb.com/docs/variables/).

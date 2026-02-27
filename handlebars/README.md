@@ -1,6 +1,6 @@
 This package defines a handler for [Handlebars](https://handlebarsjs.com) templates that can be used in [Origami](https://weborigami.org) programs.
 
-This is intended to be useful to Handlebars users, and also as a reference implementation of writing a handler for a new file type in Origami.
+This is intended to be useful to Handlebars users, and also as a reference implementation of writing a handler for a new file type in Origami. (Also see the [Liquid template extension](../liquid/).)
 
 ## Installation
 
