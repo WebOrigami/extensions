@@ -11,7 +11,7 @@ This is intended to be useful to people migrating from Jekyll or otherwise want 
 
 ```
 {
-  hbs.handler = package:@weborigami/liquid
+  liquid_handler = package:@weborigami/liquid
 }
 ```
 

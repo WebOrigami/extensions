@@ -2,7 +2,7 @@
   "name": "@weborigami/liquid",
   "version": "0.0.1",
   "type": "module",
-  "main": "src/liquid.handler.js",
+  "main": "src/liquid_handler.js",
   "dependencies": {
     "@weborigami/async-tree": "0.5.1",
     "liquidjs": "10.21.1",
