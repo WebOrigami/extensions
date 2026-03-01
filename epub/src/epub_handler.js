@@ -1,4 +1,4 @@
-import { AsyncMap, Tree } from "@weborigami/async-tree";
+import { AsyncMap, isUnpackable, Tree } from "@weborigami/async-tree";
 import zip_handler from "@weborigami/zip";
 
 /**
@@ -16,6 +16,9 @@ export default {
    * @param {import("@weborigami/async-tree").Treelike} treelike
    */
   async pack(treelike) {
+    if (isUnpackable(treelike)) {
+      treelike = await treelike.unpack();
+    }
     const tree = Tree.from(treelike);
     return zip_handler.pack(mimetypeFirst(tree));
   },
