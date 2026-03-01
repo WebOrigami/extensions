@@ -48,7 +48,7 @@ async function addTreeToIndex(treelike, options) {
   for await (const key of tree.keys()) {
     const path = `${trailingSlash.remove(basePath)}/${key}`;
     const value = await tree.get(key);
-    if (Tree.isMap(value)) {
+    if (Tree.isMaplike(value)) {
       // Child node
       await addTreeToIndex(value, { index, basePath: path });
       continue;
@@ -60,7 +60,7 @@ async function addTreeToIndex(treelike, options) {
       });
       if (result.errors?.length > 0) {
         console.error(
-          `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`
+          `Errors indexing ${path}:\n${JSON.stringify(result.errors, null, 2)}`,
         );
       }
     }
