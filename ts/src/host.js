@@ -1,6 +1,6 @@
 import {
-  DeepObjectMap,
   keysFromPath,
+  ObjectMap,
   toString,
   Tree,
 } from "@weborigami/async-tree";
@@ -24,12 +24,16 @@ export default async function host(treelike) {
 
 /**
  * A TypeScript compiler host that reads and writes files from a plain object.
- * This subclasses DeepObjectMap so that it can be used as a map-based tree too.
+ * This subclasses ObjectMap so that it can be used as a map-based tree too.
  *
  * Note: TypeScript docs call the first argument to functions like getSourceFile
  * and writeFile `fileName`, but it's actually a slash-separated path.
  */
-class TreeCompilerHost extends DeepObjectMap {
+class TreeCompilerHost extends ObjectMap {
+  constructor(object) {
+    super(object, { deep: true });
+  }
+
   fileExists(filePath) {
     return traversePath(this.object, filePath) !== undefined;
   }
@@ -49,7 +53,7 @@ class TreeCompilerHost extends DeepObjectMap {
   getSourceFile(filePath) {
     return ts.createSourceFile(
       filePath,
-      toString(traversePath(this.object, filePath))
+      toString(traversePath(this.object, filePath)),
     );
   }
 
