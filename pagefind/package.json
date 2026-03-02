@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/pagefind",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "type": "module",
   "main": "src/indexTree.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.6.0",
+    "@weborigami/async-tree": "0.6.12",
     "pagefind": "1.4.0"
   }
 }
