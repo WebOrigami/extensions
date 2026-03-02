@@ -1,0 +1,49 @@
+// Sample site for testing the pagefind extension
+{
+  // About and index page should both contain the word "world"
+  about: {
+    index.html: page(Tree.indent`
+      <h1>About us</h1>
+      <p>We're the best in the world.</p>
+    `)
+  }
+
+  index.html: page(Tree.indent`
+    <h1>Hello, world</h1>
+  `)
+
+  page: (body) => Tree.indent`
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title></title>
+      </head>
+      <body>
+        ${ body }
+      </body>
+    </html>
+  `
+
+  search.html: page(Tree.indent`
+    <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+    <script src="/pagefind/pagefind-ui.js"></script>
+    <div id="search"></div>
+    <script>
+      window.addEventListener('DOMContentLoaded', (event) => {
+        new PagefindUI({
+          element: "#search",
+          pageSize: 10,
+          showImages: false,
+          showSubResults: true,
+        });
+      });
+    </script>
+  `)
+}
+
+-> (pages) => {
+  ...pages
+  pagefind/ = package:@weborigami/pagefind(pages)
+}
