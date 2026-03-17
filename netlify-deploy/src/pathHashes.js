@@ -1,4 +1,4 @@
-import { isUnpackable, trailingSlash, Tree } from "@weborigami/async-tree";
+import { Tree } from "@weborigami/async-tree";
 import crypto from "node:crypto";
 import toBuffer from "./toBuffer.js";
 
@@ -10,29 +10,13 @@ import toBuffer from "./toBuffer.js";
  * @param {{ base?: string }} options
  */
 export default async function pathHashes(maplike, options = {}) {
-  if (isUnpackable(maplike)) {
-    maplike = await maplike.unpack();
-  }
-  const tree = Tree.from(maplike, { deep: true });
   const base = options.base ?? "/";
+  const deflated = await Tree.deflatePaths(maplike, base);
 
-  const result = {};
-
-  for await (const key of tree.keys()) {
-    const separator = trailingSlash.has(base) ? "" : "/";
-    const encodedKey = encodeURIComponent(trailingSlash.remove(key));
-    const valuePath = `${base}${separator}${encodedKey}`;
-    const value = await tree.get(key);
-    if (Tree.isMaplike(value)) {
-      // Subtree; recurse
-      const subPaths = await pathHashes(value, { base: valuePath });
-      Object.assign(result, subPaths);
-    } else {
-      result[valuePath] = hash(value, valuePath);
-    }
-  }
-
-  return result;
+  // Map values to hashes
+  const mapped = await Tree.map(deflated, hash);
+  const plain = await Tree.plain(mapped);
+  return plain;
 }
 
 function hash(value, valuePath) {
