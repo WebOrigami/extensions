@@ -1,6 +1,6 @@
 {
   "name": "@weborigami/netlify-deploy",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "type": "module",
   "main": "src/deploy.js",
   "dependencies": {
