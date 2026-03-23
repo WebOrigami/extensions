@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/netlify-deploy",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "type": "module",
   "main": "src/deploy.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.6.11"
+    "@weborigami/async-tree": "0.6.15"
   },
   "scripts": {
     "deploy": "ori deploy.ori/",
