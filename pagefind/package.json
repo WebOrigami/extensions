@@ -1,14 +1,14 @@
 {
   "name": "@weborigami/pagefind",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "type": "module",
   "main": "src/indexTree.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.6.12",
-    "pagefind": "1.4.0"
+    "@weborigami/async-tree": "0.6.15",
+    "pagefind": "1.5.0"
   },
   "devDependencies": {
-    "jsdom": "28.1.0"
+    "jsdom": "29.0.1"
   },
   "scripts": {
     "build-test": "ori copy test/testSite.ori, clear files:test/build",
