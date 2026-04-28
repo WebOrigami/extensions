@@ -8,10 +8,10 @@ describe("DropboxMap", () => {
 
   before(async () => {
     const projectUrl = new URL("..", import.meta.url);
-    const projectTree = new FileMap(projectUrl);
-    const credsBuffer = await projectTree.get("creds.json");
+    const parent = new FileMap(projectUrl);
+    const credsBuffer = await parent.get("creds.json");
     const creds = JSON.parse(toString(credsBuffer));
-    const tree = await auth(creds);
+    const tree = await auth(creds, { parent });
     fixture = await tree.get("Test/");
   });
 
@@ -40,7 +40,7 @@ describe("DropboxMap", () => {
     const text = toString(value);
     assert.equal(
       text,
-      "This folder is used to test the Origami Dropbox extension.\n"
+      "This folder is used to test the Origami Dropbox extension.\n",
     );
   });
 

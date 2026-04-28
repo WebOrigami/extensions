@@ -29,7 +29,7 @@ export default class DropboxMap extends AsyncMap {
     if (key == null) {
       // Reject nullish key.
       throw new ReferenceError(
-        `${this.constructor.name}: Cannot get a null or undefined key.`
+        `${this.constructor.name}: Cannot get a null or undefined key.`,
       );
     }
 
@@ -87,11 +87,11 @@ export default class DropboxMap extends AsyncMap {
           Authorization: `Bearer ${this.accessToken}`,
           "Dropbox-API-Arg": JSON.stringify({ path }),
         },
-      }
+      },
     );
     if (!response.ok) {
       throw new Error(
-        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`,
       );
     }
 
@@ -108,11 +108,11 @@ export default class DropboxMap extends AsyncMap {
           Authorization: `Bearer ${this.accessToken}`,
           "Dropbox-API-Arg": JSON.stringify({ path }),
         },
-      }
+      },
     );
     if (!response.ok) {
       throw new Error(
-        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`,
       );
     }
 
@@ -164,7 +164,7 @@ async function getFolderItems(accessToken, path) {
 
     if (!response.ok) {
       throw new Error(
-        `Dropbox API reported an error: ${response.status}: ${response.statusText}`
+        `Dropbox API reported an error: ${response.status}: ${response.statusText}`,
       );
     }
 

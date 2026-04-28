@@ -1,5 +1,8 @@
 import { Tree } from "@weborigami/async-tree";
-import { HandleExtensionsTransform } from "@weborigami/language";
+import {
+  HandleExtensionsTransform,
+  initializeGlobalsForTree,
+} from "@weborigami/language";
 import DropboxMap from "./DropboxMap.js";
 
 // Map of app secret to access token.
@@ -8,12 +11,14 @@ const accessTokenMap = new Map();
 // Dictionary of access token to DropboxTree.
 const treeMap = {};
 
-export default async function auth(credentialsTreelike) {
+export default async function auth(credentialsTreelike, state) {
   if (!credentialsTreelike) {
     throw new ReferenceError("Missing Dropbox credentials");
   }
 
   const credentials = await Tree.plain(credentialsTreelike);
+  const parent = state?.parent;
+  await initializeGlobalsForTree(parent);
 
   let accessToken = accessTokenMap.get(credentials.app_secret);
   if (!accessToken) {
@@ -24,11 +29,13 @@ export default async function auth(credentialsTreelike) {
   let tree = treeMap[accessToken];
   if (!tree) {
     tree = new (HandleExtensionsTransform(DropboxMap))(accessToken);
+    tree.globals = parent.globals;
     treeMap[accessToken] = tree;
   }
 
   return tree;
 }
+auth.needsState = true;
 
 /**
  * Given Dropbox credentials, get an access token.
