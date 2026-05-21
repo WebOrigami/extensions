@@ -1,8 +1,5 @@
 import { Tree } from "@weborigami/async-tree";
-import {
-  HandleExtensionsTransform,
-  initializeGlobalsForTree,
-} from "@weborigami/language";
+import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import * as googleApis from "googleapis";
 import GoogleDriveMap from "./GoogleDriveMap.js";
 
@@ -15,14 +12,16 @@ const scopes = [
 export default async function auth(credentialsTreelike, state) {
   const credentials = await Tree.plain(credentialsTreelike);
   const auth = new googleApis.google.auth.GoogleAuth({ credentials, scopes });
-  const parent = state?.parent;
-  await initializeGlobalsForTree(parent);
+  const globals = state?.globals || (await coreGlobals());
   return (folderId) => {
     const tree = new (HandleExtensionsTransform(GoogleDriveMap))(
       auth,
       folderId,
     );
-    tree.globals = parent.globals;
+
+    // Set globals for extension handlers
+    tree.globals = globals;
+
     return tree;
   };
 }

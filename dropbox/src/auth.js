@@ -1,8 +1,5 @@
 import { Tree } from "@weborigami/async-tree";
-import {
-  HandleExtensionsTransform,
-  initializeGlobalsForTree,
-} from "@weborigami/language";
+import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import DropboxMap from "./DropboxMap.js";
 
 // Map of app secret to access token.
@@ -17,8 +14,6 @@ export default async function auth(credentialsTreelike, state) {
   }
 
   const credentials = await Tree.plain(credentialsTreelike);
-  const parent = state?.parent;
-  await initializeGlobalsForTree(parent);
 
   let accessToken = accessTokenMap.get(credentials.app_secret);
   if (!accessToken) {
@@ -29,7 +24,10 @@ export default async function auth(credentialsTreelike, state) {
   let tree = treeMap[accessToken];
   if (!tree) {
     tree = new (HandleExtensionsTransform(DropboxMap))(accessToken);
-    tree.globals = parent.globals;
+
+    // Set globals for extension handlers
+    tree.globals = state?.globals || (await coreGlobals());
+
     treeMap[accessToken] = tree;
   }
 

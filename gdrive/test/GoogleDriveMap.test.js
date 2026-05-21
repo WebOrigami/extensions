@@ -1,4 +1,4 @@
-import { FileMap } from "@weborigami/async-tree";
+import { FileMap, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import { describe, test } from "node:test";
@@ -18,6 +18,7 @@ describe("GoogleDriveTree", () => {
       keys.push(key);
     }
     assert.deepEqual(keys, [
+      "about.yaml",
       "images/",
       "ReadMe.md",
       "Sample.gdoc",
@@ -77,5 +78,10 @@ describe("GoogleDriveTree", () => {
 
     const deleted = await fixture.delete(key);
     assert(deleted);
+  });
+
+  test.only("can traverse into a file that has a handler", async () => {
+    const value = await Tree.traverse(fixture, "about.yaml", "name");
+    assert.equal(value, "Our Team");
   });
 });
