@@ -1,10 +1,8 @@
+import { keysFromPath, SyncMap, Tree } from "@weborigami/async-tree";
 import {
-  SyncMap,
-  Tree,
-  keysFromPath,
-  trailingSlash,
-} from "@weborigami/async-tree";
-import { HandleExtensionsTransform } from "@weborigami/language";
+  getGlobalsForTree,
+  HandleExtensionsTransform,
+} from "@weborigami/language";
 import Zip from "adm-zip";
 
 /**
@@ -16,17 +14,15 @@ export default {
   /**
    * Pack a tree of files as a ZIP file in Buffer form.
    *
-   * @param {import("@weborigami/async-tree").Treelike} treelike
+   * @param {import("@weborigami/async-tree").Maplike} maplike
    */
-  async pack(treelike) {
+  async pack(maplike) {
     // The ZIP file should leave the files in tree order.
     const zip = new Zip({ noSort: true });
-    await traversePaths(treelike, (value, path) => {
-      if (value instanceof String) {
-        value = String(value);
-      }
+    const deflated = await Tree.deflatePaths(maplike);
+    for (const [path, value] of deflated) {
       zip.addFile(path, value);
-    });
+    }
     const buffer = zip.toBuffer();
     return buffer;
   },
@@ -43,7 +39,14 @@ export default {
 
     const zip = new Zip(buffer);
 
-    const files = new SyncMap();
+    // The final tree will include extension handlers and have functions invoked
+    // to retrieve data from the ZIP file. While the base map is a SyncMap, the
+    // final tree will be async.
+    const result = new (HandleExtensionsTransform(
+      InvokeFunctionsTransform(SyncMap),
+    ))();
+    result.trailingSlashKeys = true;
+
     for (const entry of zip.getEntries()) {
       const path = entry.entryName;
 
@@ -59,18 +62,16 @@ export default {
 
       // Defer loading of actual data
       const value = () => entry.getData();
-      addToMap(files, path, value);
+      addToMap(result, path, value);
     }
 
-    // The final tree will include extension handlers and have functions invoked
-    // to retrieve data from the ZIP file. While the base map is a SyncMap, the
-    // final tree will be async.
-    const withFunctions = Tree.invokeFunctions(
-      new (HandleExtensionsTransform(SyncMap))(files)
-    );
-    withFunctions.parent = options?.parent;
+    const parent = options?.parent;
+    const globals = parent ? getGlobalsForTree(parent) : null;
+    if (globals) {
+      result.globals = globals;
+    }
 
-    return withFunctions;
+    return result;
   },
 };
 
@@ -90,36 +91,26 @@ function addToMap(map, path, value) {
   // Traverse to the appropriate parent, creating submaps as needed.
   let current = map;
   for (const key of keys) {
-    if (!current.has(key)) {
-      /** @type {any} */
-      const mapClass = current.constructor;
-      const empty = mapClass.EMPTY ?? new mapClass();
-      current.set(key, empty);
-    }
-    current = current.get(key);
+    current = current.child(key);
   }
 
   // Set the value in the final map.
   current.set(filename, value);
 }
 
-/**
- * Traverse the tree, invoking the given callback function for each
- * value. Pass the value and path to the callback function.
- *
- * @param {import("@weborigami/types").Treelike} tree
- * @param {Function} fn
- * @param {string} [base]
- */
-async function traversePaths(treelike, fn, base = "") {
-  const tree = Tree.from(treelike, { deep: true });
-  for await (const key of tree.keys()) {
-    const path = base ? `${trailingSlash.remove(base)}/${key}` : key;
-    const value = await tree.get(key);
-    if (Tree.isMaplike(value)) {
-      await traversePaths(value, fn, path);
-    } else {
-      await fn(value, path);
+function InvokeFunctionsTransform(Base) {
+  return class InvokeFunctions extends Base {
+    delete(key) {
+      return super.delete(key);
     }
-  }
+
+    get(key) {
+      const value = super.get(key);
+      return typeof value === "function" ? value() : value;
+    }
+
+    set(key, value) {
+      return super.set(key, value);
+    }
+  };
 }
