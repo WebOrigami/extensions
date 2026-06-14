@@ -1,4 +1,4 @@
-import { keysFromPath, SyncMap, Tree } from "@weborigami/async-tree";
+import { SyncMap, Tree } from "@weborigami/async-tree";
 import {
   getGlobalsForTree,
   HandleExtensionsTransform,
@@ -39,31 +39,24 @@ export default {
 
     const zip = new Zip(buffer);
 
+    const entries = zip.getEntries();
+    const filtered = entries.filter(
+      (entry) =>
+        !entry.entryName.startsWith("__MACOSX/") &&
+        !entry.entryName.endsWith("/"),
+    );
+    const deflated = Object.fromEntries(
+      filtered.map((entry) => [entry.entryName, () => entry.getData()]),
+    );
+
     // The final tree will include extension handlers and have functions invoked
     // to retrieve data from the ZIP file. While the base map is a SyncMap, the
     // final tree will be async.
-    const result = new (HandleExtensionsTransform(
+    const classFn = HandleExtensionsTransform(
       InvokeFunctionsTransform(SyncMap),
-    ))();
+    );
+    const result = await Tree.inflatePaths(deflated, { classFn });
     result.trailingSlashKeys = true;
-
-    for (const entry of zip.getEntries()) {
-      const path = entry.entryName;
-
-      // macOS adds a __MACOSX directory to ZIP files, which we don't want.
-      if (path.startsWith("__MACOSX/")) {
-        continue;
-      }
-
-      // Skip directory entries -- we'll create them as needed.
-      if (path.endsWith("/")) {
-        continue;
-      }
-
-      // Defer loading of actual data
-      const value = () => entry.getData();
-      addToMap(result, path, value);
-    }
 
     const parent = options?.parent;
     const globals = parent ? getGlobalsForTree(parent) : null;
@@ -74,29 +67,6 @@ export default {
     return result;
   },
 };
-
-/**
- * Add the given value to the map at the given path.
- *
- * @param {Map} map
- * @param {string} path
- * @param {any} value
- */
-function addToMap(map, path, value) {
-  // Turn the path into a list of keys.
-  const keys = keysFromPath(path);
-
-  const filename = keys.pop();
-
-  // Traverse to the appropriate parent, creating submaps as needed.
-  let current = map;
-  for (const key of keys) {
-    current = current.child(key);
-  }
-
-  // Set the value in the final map.
-  current.set(filename, value);
-}
 
 function InvokeFunctionsTransform(Base) {
   return class InvokeFunctions extends Base {
