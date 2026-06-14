@@ -20,7 +20,13 @@ export default {
     // The ZIP file should leave the files in tree order.
     const zip = new Zip({ noSort: true });
     const deflated = await Tree.deflatePaths(maplike);
-    for (const [path, value] of deflated) {
+    for (let [path, value] of deflated) {
+      if (typeof value === "function") {
+        value = value();
+      }
+      if (value instanceof Promise) {
+        value = await value;
+      }
       zip.addFile(path, value);
     }
     const buffer = zip.toBuffer();
