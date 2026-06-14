@@ -3,6 +3,9 @@ import puppeteer from "puppeteer";
 let browserPromise;
 let instanceCount = 0;
 
+// Locales that prefer Letter size paper over A4
+const letterPaperRegions = new Set(["US", "CA", "MX"]);
+
 /**
  * Take a screenshot via Puppeteer.
  *
@@ -10,10 +13,15 @@ let instanceCount = 0;
  * [Page](https://pptr.dev/api/puppeteer.page) object; the function can do
  * whatever work is necessary to prepare the page for the screenshot.
  *
- * This returns the screenshot as an image buffer.
+ * This returns the screenshot as a `Uint8Array` of the image data. By default,
+ * the screenshot will be a PNG, but the `type` option can be
+ * "png"/"jpeg"/"webp" to specify a different image format or "pdf" to generate
+ * a PDF. For "pdf", the `format` option can be used to specify page size
+ * (e.g. "A4").
  *
  * @param {Function} preparePageFn
- * @param {{ deviceScaleFactor: number, height: number, width: number }} options
+ * @param {{ deviceScaleFactor: number, format: string, type: string, height: number, width:
+ * number }} options
  * @returns {Uint8Array}
  */
 export default async function screenshot(preparePageFn, options = {}) {
@@ -54,35 +62,49 @@ export default async function screenshot(preparePageFn, options = {}) {
     width: pageWidth,
   });
 
-  // Get the height and width of the body including any margin.
-  const { bodyHeight, bodyWidth } = await page.evaluate(() => {
-    // Because we want to include margin, we need to get the computed style and
-    // convert the margins from a `px` string to a number.
-    const body = document.body;
-    const bodyStyle = window.getComputedStyle(body);
-    const marginTop = parseInt(bodyStyle.marginTop);
-    const marginBottom = parseInt(bodyStyle.marginBottom);
-    const marginLeft = parseInt(bodyStyle.marginLeft);
-    const marginRight = parseInt(bodyStyle.marginRight);
+  let buffer;
+  if (options.type === "pdf") {
+    let format = options.format;
+    if (!format) {
+      const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+      const region = new Intl.Locale(locale).region;
+      format = letterPaperRegions.has(region) ? "Letter" : "A4";
+    }
+    buffer = await page.pdf({
+      format: format,
+      printBackground: true,
+    });
+  } else {
+    // Get the height and width of the body including any margin.
+    const { bodyHeight, bodyWidth } = await page.evaluate(() => {
+      // Because we want to include margin, we need to get the computed style and
+      // convert the margins from a `px` string to a number.
+      const body = document.body;
+      const bodyStyle = window.getComputedStyle(body);
+      const marginTop = parseInt(bodyStyle.marginTop);
+      const marginBottom = parseInt(bodyStyle.marginBottom);
+      const marginLeft = parseInt(bodyStyle.marginLeft);
+      const marginRight = parseInt(bodyStyle.marginRight);
 
-    const bodyHeight = body.offsetHeight + marginTop + marginBottom;
-    const bodyWidth = body.offsetWidth + marginLeft + marginRight;
+      const bodyHeight = body.offsetHeight + marginTop + marginBottom;
+      const bodyWidth = body.offsetWidth + marginLeft + marginRight;
 
-    return { bodyHeight, bodyWidth };
-  });
+      return { bodyHeight, bodyWidth };
+    });
 
-  const clipHeight = options.height ?? bodyHeight;
-  const clipWidth = options.width ?? bodyWidth;
+    const clipHeight = options.height ?? bodyHeight;
+    const clipWidth = options.width ?? bodyWidth;
 
-  // Take the screenshot.
-  const buffer = await page.screenshot({
-    clip: {
-      height: clipHeight,
-      width: clipWidth,
-      x: 0,
-      y: 0,
-    },
-  });
+    // Take the screenshot.
+    buffer = await page.screenshot({
+      clip: {
+        height: clipHeight,
+        width: clipWidth,
+        x: 0,
+        y: 0,
+      },
+    });
+  }
 
   // If we're the last active instance, close the browser.
   instanceCount--;
