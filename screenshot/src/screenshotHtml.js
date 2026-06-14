@@ -75,10 +75,15 @@ async function respondToRequest(request, resources) {
         // Convert standard Response to a fake puppeteer response.
         const arrayBuffer = await response.arrayBuffer();
         const body = Buffer.from(arrayBuffer);
-        const headers = Object.fromEntries(response.headers.entries());
 
-        // Add a CORS header to allow, e.g., fonts to load.
-        headers["Access-Control-Allow-Origin"] = "*";
+        const headers = {
+          // Add a CORS header to allow, e.g., fonts to load.
+          "Access-Control-Allow-Origin": "*",
+        };
+        const contentType = response.headers.get("Content-Type");
+        if (contentType) {
+          headers["Content-Type"] = contentType;
+        }
 
         request.respond({
           body,
