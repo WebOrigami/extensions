@@ -1,1 +1,0 @@
-This is a variation of the Origami [ZIP extension]() that supports creating .epub files for e-books. A .epub file is just a .zip file that must have a specific `mimetype` file come first in the listing of top-level files.
