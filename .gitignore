@@ -2,3 +2,4 @@ build
 creds.json
 node_modules
 token.json
+token.txt
