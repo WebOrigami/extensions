@@ -3,14 +3,14 @@ import crypto from "node:crypto";
 import fetchWithBackoff from "./fetchWithBackoff.js";
 
 /**
- * Upload the given maplike to the indicated Netlify site.
+ * Upload the given maplike to the indicated Neocities site.
  *
  * @typedef {import("@weborigami/async-tree").Maplike} Maplike
  *
  * @param {Maplike} maplike
  * @param {{ token: string }} options
  */
-export default async function upload(maplike, options) {
+export default async function publish(maplike, options) {
   // Process and validate arguments
   if (isUnpackable(maplike)) {
     maplike = await maplike.unpack();
