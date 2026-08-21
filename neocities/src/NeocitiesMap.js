@@ -11,18 +11,6 @@ export default class NeocitiesMap extends AsyncMap {
     this._siteName = null;
   }
 
-  // Return the (possibly new) subdirectory with the given key.
-  child(key) {
-    const filePath = this.filePathForKey(key);
-    const directoryPath = trailingSlash.add(filePath);
-    const directory = Reflect.construct(this.constructor, [
-      this.token,
-      directoryPath,
-    ]);
-    directory.parent = this;
-    return directory;
-  }
-
   async fileEntryForKey(key) {
     const filePath = this.filePathForKey(key);
     const files = await this.getFiles();
