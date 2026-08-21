@@ -15,15 +15,13 @@ export default async function fetchWithBackoff(url, options) {
     let response;
     try {
       response = await fetch(url, options);
+      // Return response unless we got 429 Too Many Requests
       if (response.status !== 429) {
-        // 429 Too Many Requests
         return response;
       }
     } catch (error) {
       // Network error, warn and retry
-      console.warn(`Warning: ${error.message}`);
-      console.warn(url);
-      console.warn(JSON.stringify(options));
+      console.warn(`Retrying failed fetch of ${url}: ${error.message}`);
     }
 
     // Wait and retry
@@ -38,5 +36,5 @@ export default async function fetchWithBackoff(url, options) {
     const delaySeconds = retryAfterSeconds + backoffSeconds;
     await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
   }
-  throw new Error("Max retries exceeded");
+  throw new Error("fetchWithBackoff: Max retries exceeded");
 }
