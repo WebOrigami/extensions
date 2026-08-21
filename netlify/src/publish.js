@@ -5,13 +5,13 @@ import pathHashes from "./pathHashes.js";
 import toBuffer from "./toBuffer.js";
 
 /**
- * Upload the given maplike to the indicated Netlify site.
+ * Publish the given maplike to the indicated Netlify site.
  *
  * @typedef {import("@weborigami/async-tree").Maplike} Maplike
  *
  * @param {{ site: Maplike, netlifyProjectId?: string, netlifyProjectName?: string, token: string }} options
  */
-export default async function deploy(options) {
+export default async function publish(options) {
   if (isUnpackable(options)) {
     options = await options.unpack();
   }
@@ -24,21 +24,21 @@ export default async function deploy(options) {
 
   if (netlifyProjectId === undefined && netlifyProjectName === undefined) {
     throw new Error(
-      "deploy: You must provide either a project name or a project/site id.",
+      "Netlify: You must provide either a project name or a project/site id.",
     );
   }
   if (
     netlifyProjectId !== undefined &&
     (typeof netlifyProjectId !== "string" || netlifyProjectId.length === 0)
   ) {
-    throw new ReferenceError("deploy: site id must be a non-empty string.");
+    throw new ReferenceError("Netlify: site id must be a non-empty string.");
   }
   if (
     netlifyProjectName !== undefined &&
     (typeof netlifyProjectName !== "string" || netlifyProjectName.length === 0)
   ) {
     throw new ReferenceError(
-      "deploy: project name must be a non-empty string.",
+      "Netlify: project name must be a non-empty string.",
     );
   }
 
@@ -47,7 +47,7 @@ export default async function deploy(options) {
     token = token.trim();
   }
   if (typeof token !== "string" || token.length === 0) {
-    throw new ReferenceError("deploy: token was not provided");
+    throw new ReferenceError("Netlify: token was not provided");
   }
 
   netlifyProjectId ??= await getNetlifyProjectId(netlifyProjectName, token);
