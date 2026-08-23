@@ -1,5 +1,5 @@
 import { AsyncMap, trailingSlash } from "@weborigami/async-tree";
-import fetchWithBackoff from "./fetchWithBackoff.js";
+import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
   constructor(token, path = "") {

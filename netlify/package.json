@@ -2,7 +2,7 @@
   "name": "@weborigami/netlify",
   "version": "0.0.18",
   "type": "module",
-  "main": "src/main.js",
+  "main": "main.js",
   "dependencies": {
     "@weborigami/async-tree": "0.6.15"
   },

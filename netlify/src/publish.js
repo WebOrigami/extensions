@@ -1,5 +1,5 @@
 import { isUnpackable, Tree } from "@weborigami/async-tree";
-import fetchWithBackoff from "./fetchWithBackoff.js";
+import { fetchWithBackoff } from "@weborigami/origami";
 import mapLimit from "./mapLimit.js";
 import pathHashes from "./pathHashes.js";
 import toBuffer from "./toBuffer.js";
@@ -9,19 +9,19 @@ import toBuffer from "./toBuffer.js";
  *
  * @typedef {import("@weborigami/async-tree").Maplike} Maplike
  *
- * @param {{ site: Maplike, netlifyProjectId?: string, netlifyProjectName?: string, token: string }} options
+ * @param {Maplike} maplike
+ * @param {{ netlifyProjectId?: string, netlifyProjectName?: string, token: string }} options
  */
-export default async function publish(options) {
+export default async function publish(maplike, options) {
+  if (isUnpackable(maplike)) {
+    maplike = await maplike.unpack();
+  }
+  const tree = Tree.from(maplike);
+
   if (isUnpackable(options)) {
     options = await options.unpack();
   }
-
-  let { site, netlifyProjectId, netlifyProjectName, token } = options;
-
-  if (isUnpackable(site)) {
-    site = await site.unpack();
-  }
-
+  let { netlifyProjectId, netlifyProjectName, token } = options;
   if (netlifyProjectId === undefined && netlifyProjectName === undefined) {
     throw new Error(
       "Netlify: You must provide either a project name or a project/site id.",
@@ -52,7 +52,7 @@ export default async function publish(options) {
 
   netlifyProjectId ??= await getNetlifyProjectId(netlifyProjectName, token);
 
-  const files = await pathHashes(site);
+  const files = await pathHashes(maplike);
   const body = JSON.stringify({ files });
   const response = await fetch(
     `https://api.netlify.com/api/v1/sites/${netlifyProjectId}/deploys`,
@@ -100,7 +100,7 @@ export default async function publish(options) {
   const deployUrl = `https://api.netlify.com/api/v1/deploys/${deployId}/files`;
   await mapLimit(
     uploadPaths,
-    (path) => uploadFile(site, path, deployUrl, token),
+    (path) => uploadFile(tree, path, deployUrl, token),
     8,
   );
 

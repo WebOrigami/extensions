@@ -15,30 +15,30 @@ describe("NeocitiesMap", () => {
   test("get method returns a file", async () => {
     const indexBuffer = await root.get("index.html");
     const indexHtml = new TextDecoder().decode(indexBuffer);
-    assert(indexHtml.includes("<h1>Welcome</h1>"));
+    assert(indexHtml.includes("<!DOCTYPE html>"));
   });
 
   test("get method with trailing slash returns a subdirectory", async () => {
-    const src = await root.get("src/");
-    const keys = await Tree.keys(src);
-    assert(keys.includes("test.txt"));
+    const assets = await root.get("assets/");
+    const keys = await Tree.keys(assets);
+    assert(keys.includes("styles.css"));
   });
 
   test("get method without a trailing slash returns a subdirectory", async () => {
-    const src = await root.get("src");
-    const keys = await Tree.keys(src);
-    assert(keys.includes("test.txt"));
+    const assets = await root.get("assets");
+    const keys = await Tree.keys(assets);
+    assert(keys.includes("styles.css"));
   });
 
   test("keys method yields top-level keys", async () => {
     const keys = await Tree.keys(root);
     assert(keys.includes("index.html"));
-    assert(keys.includes("images/"));
+    assert(keys.includes("assets/"));
   });
 
   test("keys method yields keys in subdirectory", async () => {
-    const src = await root.get("src/");
-    const keys = await Tree.keys(src);
-    assert(keys.includes("test.txt"));
+    const assets = await root.get("assets/");
+    const keys = await Tree.keys(assets);
+    assert(keys.includes("styles.css"));
   });
 });

@@ -1,6 +1,6 @@
 import { isUnpackable, Tree } from "@weborigami/async-tree";
+import { fetchWithBackoff } from "@weborigami/origami";
 import crypto from "node:crypto";
-import fetchWithBackoff from "./fetchWithBackoff.js";
 
 /**
  * Upload the given maplike to the indicated Neocities site.

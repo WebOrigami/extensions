@@ -1,5 +1,5 @@
 import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
-import fetchWithBackoff from "./fetchWithBackoff.js";
+import { fetchWithBackoff } from "@weborigami/origami";
 
 /**
  * A Dropbox folder as an async map.
