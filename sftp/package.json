@@ -1,0 +1,12 @@
+{
+  "name": "@weborigami/sftp",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "@weborigami/async-tree": "0.6.1",
+    "@weborigami/language": "0.6.1",
+    "ssh2-sftp-client": "11.0.0",
+    "ssh2": "1.11.0"
+  },
+  "devDependencies": {}
+}
