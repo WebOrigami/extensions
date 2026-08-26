@@ -1,11 +1,6 @@
-import {
-  AsyncMap,
-  isPacked,
-  naturalOrder,
-  toString,
-  trailingSlash,
-} from "@weborigami/async-tree";
+import { isPacked, toString } from "@weborigami/async-tree";
 import SftpClient from "ssh2-sftp-client";
+import SftpMap from "./SftpMap.js";
 
 /**
  * Return an AsyncMap for the files in a remote SFTP server.
@@ -40,57 +35,46 @@ export default async function sftp(host, options) {
     );
   }
 
-  const sftp = new SftpClient();
+  const client = new SftpClient();
   let connected = false;
   let disconnectTimeout = null;
 
-  return Object.assign(new AsyncMap(), {
-    async connect() {
-      if (disconnectTimeout) {
-        clearImmediate(disconnectTimeout);
-        disconnectTimeout = null;
-      }
-      if (!connected) {
-        await sftp.connect({
-          host,
-          ...options,
-          passphrase,
-          password,
-          privateKey,
-        });
-        connected = true;
-      }
-    },
-
-    async get(path) {},
-
-    async *keys() {
-      await this.connect();
-      try {
-        const fileList = await sftp.list("/");
-        const keys = fileList.map((file) =>
-          trailingSlash.toggle(file.name, file.type === "d"),
-        );
-        keys.sort(naturalOrder);
-        yield* keys;
-      } finally {
-        this.scheduleDisconnect();
-      }
-    },
-
-    // Close the connection once nothing else calls in before the next tick; any
-    // new call cancels this via connect().
-    scheduleDisconnect() {
-      if (disconnectTimeout) {
-        clearImmediate(disconnectTimeout);
-      }
-      disconnectTimeout = setImmediate(async () => {
-        disconnectTimeout = null;
-        if (connected) {
-          connected = false;
-          await sftp.end();
-        }
+  async function connect() {
+    if (disconnectTimeout) {
+      clearImmediate(disconnectTimeout);
+      disconnectTimeout = null;
+    }
+    if (!connected) {
+      await client.connect({
+        host,
+        ...options,
+        passphrase,
+        password,
+        privateKey,
       });
-    },
+      connected = true;
+    }
+  }
+
+  // Close the connection once nothing else calls in before the next tick; any
+  // new call cancels this via connect().
+  async function scheduleDisconnect() {
+    if (disconnectTimeout) {
+      clearImmediate(disconnectTimeout);
+    }
+    disconnectTimeout = setImmediate(async () => {
+      disconnectTimeout = null;
+      if (connected) {
+        connected = false;
+        await client.end();
+      }
+    });
+  }
+
+  return new SftpMap({
+    client,
+    connect,
+    path: "/",
+    scheduleDisconnect,
   });
 }
