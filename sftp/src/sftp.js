@@ -6,11 +6,10 @@ import SftpMap from "./SftpMap.js";
 /**
  * Return an AsyncMap for the files in a remote SFTP server.
  *
- * @param {string} host
- * @param {{ username: string, passphrase?: string, password?: string, privateKey?: string, port?: number }} options
+ * @param {{ host: string, username: string, passphrase?: string, password?: string, privateKey?: string, port?: number }} options
  */
-export default async function sftp(host, options, state) {
-  let { passphrase, password, privateKey } = options;
+export default async function sftp(options, state) {
+  let { agent, passphrase, password, privateKey } = options;
 
   if (isPacked(passphrase)) {
     passphrase = toString(passphrase);
@@ -20,20 +19,16 @@ export default async function sftp(host, options, state) {
     password = toString(password);
     password = password.trim();
   }
-  if (isPacked(privateKey)) {
-    privateKey = toString(privateKey);
-    privateKey = privateKey.trim();
-  }
 
   if (
     !(
+      agent ||
       (typeof password === "string" && password.length > 0) ||
       (typeof privateKey === "string" && privateKey.length > 0)
     )
   ) {
-    throw new ReferenceError(
-      "sftp: either password or privateKey must be provided",
-    );
+    // Use SSH agent
+    agent = process.env.SSH_AUTH_SOCK;
   }
 
   const client = new SftpClient();
@@ -47,11 +42,10 @@ export default async function sftp(host, options, state) {
     }
     if (!connected) {
       await client.connect({
-        host,
         ...options,
+        agent,
         passphrase,
         password,
-        privateKey,
       });
       connected = true;
     }
