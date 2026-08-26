@@ -2,6 +2,7 @@
   "name": "@weborigami/sftp",
   "version": "0.0.1",
   "type": "module",
+  "main": "src/sftp.js",
   "dependencies": {
     "@weborigami/async-tree": "0.6.1",
     "@weborigami/language": "0.6.1",
