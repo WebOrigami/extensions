@@ -1,4 +1,9 @@
-import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
+import {
+  AsyncMap,
+  naturalOrder,
+  setParent,
+  trailingSlash,
+} from "@weborigami/async-tree";
 
 /**
  * Map driver for an SFTP server path
@@ -26,6 +31,7 @@ export default class SftpMap extends AsyncMap {
           scheduleDisconnect: this.scheduleDisconnect,
         },
       ]);
+      setParent(value, this);
     } else {
       // File
       await this.connect();
@@ -37,7 +43,7 @@ export default class SftpMap extends AsyncMap {
           // File not found
           return undefined;
         } else if (code === 4) {
-          // Asked for file but it's a directory
+          // Asked for a file but it's a directory
           value = Reflect.construct(this.constructor, [
             {
               client: this.client,
@@ -46,7 +52,9 @@ export default class SftpMap extends AsyncMap {
               scheduleDisconnect: this.scheduleDisconnect,
             },
           ]);
+          setParent(value, this);
         } else {
+          // Some other error
           throw error;
         }
       } finally {

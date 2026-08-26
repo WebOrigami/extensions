@@ -1,4 +1,5 @@
 import { isPacked, toString } from "@weborigami/async-tree";
+import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import SftpClient from "ssh2-sftp-client";
 import SftpMap from "./SftpMap.js";
 
@@ -8,7 +9,7 @@ import SftpMap from "./SftpMap.js";
  * @param {string} host
  * @param {{ username: string, passphrase?: string, password?: string, privateKey?: string, port?: number }} options
  */
-export default async function sftp(host, options) {
+export default async function sftp(host, options, state) {
   let { passphrase, password, privateKey } = options;
 
   if (isPacked(passphrase)) {
@@ -71,10 +72,16 @@ export default async function sftp(host, options) {
     });
   }
 
-  return new SftpMap({
+  const tree = new (HandleExtensionsTransform(SftpMap))({
     client,
     connect,
     path: "/",
     scheduleDisconnect,
   });
+
+  // Set globals for extension handlers
+  tree.globals = state?.globals || (await coreGlobals());
+
+  return tree;
 }
+sftp.needsState = true;
