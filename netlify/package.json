@@ -7,7 +7,7 @@
     "@weborigami/async-tree": "0.6.15"
   },
   "scripts": {
-    "deploy": "ori deploy.ori/",
+    "deploy": "ori publish.ori",
     "test": "node --test --test-reporter=spec"
   }
 }

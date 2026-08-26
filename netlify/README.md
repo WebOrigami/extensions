@@ -10,7 +10,7 @@ The instructions below assume you are uploading a site defined in `src/site.ori`
 
 ## Installing
 
-Add the `@weborigami/netlify-deploy` package as a dependency in your project's `package.json`, then
+Add the `@weborigami/netlify` package as a dependency in your project's `package.json`, then
 
 ```console
 $ npm install
@@ -40,38 +40,36 @@ The rest of this process arranges things so that you can deploy further updates 
 
 ### Create a file to hold deployment options
 
-To deploy your site with Origami’s `netlify-deploy` package, you will need to pass it some configuration options. A convenient way to do that is to put those options in a file.
+To deploy your site with Origami’s `netlify` package, you will need to pass it some configuration options. A convenient way to do that is to put those options in a file.
 
-1. Create a file called, for example, `deploy.ori`.
+1. Create a file called, for example, `publish.ori`.
 1. Paste in the following template text, substituting your project name (e.g., `alice-andrews-blog`) and Netlify project ID (e.g., `69cd69f789-a780-b327-89cb078afe8b`):
 
 ```
 // Deploys https://<your project name here>.netlify.app
-package:@weborigami/netlify-deploy({
+() => package:@weborigami/netlify(src/site.ori, {
   netlifyProjectId: "<your project ID here>"
-  site: src/site.ori
-  token: token.json
+  token: token.txt
 })
 ```
 
-If your site is defined in a file other than `src/site.ori`, update the `site` field to point to it. You’ll create `token.json` in the next step.
+If your site is defined in a file other than `src/site.ori`, update the `site` field to point to it. You’ll create `token.txt` in the next step.
 
-The final `deploy.ori` file will look like this _example_:
+The final `publish.ori` file will look like this _example_:
 
 ```
 // Deploys https://alice-andrews-blog.netlify.app
-package:@weborigami/netlify-deploy({
+() => package:@weborigami/netlify(src/site.ori, {
   netlifyProjectId: "69cd69f789-a780-b327-89cb078afe8b"
-  site: src/site.ori
-  token: token.json
+  token: token.txt
 })
 ```
 
 ### Get a Netlify personal access token
 
-From Netlify you will need to obtain a “personal access token”: a little string of text that the `netlify-deploy` package will use to prove to Netlify that you’ve given it permission to update your site.
+From Netlify you will need to obtain a “personal access token”: a little string of text that the `netlify` package will use to prove to Netlify that you’ve given it permission to update your site.
 
-1. If you use git, create a file (or open the existing file) called `.gitignore`, then add `token.json` on a line by itself and save this file. **This step is important** so that you don’t accidentally add this personal access token to source control where others might see it.
+1. If you use git, create a file (or open the existing file) called `.gitignore`, then add `token.txt` on a line by itself and save this file. **This step is important** so that you don’t accidentally add this personal access token to source control where others might see it.
 1. In the Netlify site, select your account (your avatar), then **User Settings**.
 1. Select **Applications**.
 1. Under “Personal access tokens”, click **New access token**.
@@ -79,20 +77,20 @@ From Netlify you will need to obtain a “personal access token”: a little str
 1. Click **Generate token**.
 1. Netlify will display the token, which will look something like `ajnDlk6sdHIEUYfgiaklaj3n32dsilwn_lfdsijn`.
 1. Copy the token to the clipboard now. For security reasons, after you close this page, Netlify won’t display this token again.
-1. Create a file called `token.json`.
-1. Inside the `token.json` file, paste in your token and surround it with quotes so that it looks like
+1. Create a file called `token.txt`.
+1. Inside the `token.txt` file, paste in your token so that it looks like
 
-```json
-"ajnDlk6sdHIEUYfgiaklaj3n32dsilwn_lfdsijn"
+```
+ajnDlk6sdHIEUYfgiaklaj3n32dsilwn_lfdsijn
 ```
 
 This arrangement gives you a local copy of this token and makes that token available to the deployment step, but prevents the token from being checked into source control.
 
 If you have more than one Netlify project, you can reuse your personal access token across multiple projects.
 
-## Create a deployment script
+## Create an npm command to publish your site
 
-The final step is to add a `deploy` script to your `package.json` that calls the `netlify-deploy` extension, passing in the configuration options in `deploy.yaml`.
+The final step is to add a `publish` script to your `package.json` that calls `publish.ori`.
 
 Your package.json will look something like:
 
@@ -102,24 +100,30 @@ Your package.json will look something like:
   "version": "0.0.1",
   "type": "module",
   "dependencies": {
-    "@weborigami/origami": "0.6.9",
-    "@weborigami/netlify-deploy": "0.0.16"
+    "@weborigami/origami": "0.7.1",
+    "@weborigami/netlify": "0.0.19"
   },
   "scripts": {
-    "deploy": "ori deploy.ori/"
+    "publish": "ori publish.ori"
   }
 }
 ```
 
-For the `@weborigami/origami` and `@weborigami/netlify-deploy` version numbers, use the latest versions of those projects.
+For the `@weborigami/origami` and `@weborigami/netlify` version numbers, use the latest versions of those projects.
 
-With that, if you run
+Install the dependencies with
 
 ```console
-$ npm run deploy
+$ npm install
 ```
 
-the deployment process will:
+You should then be able to run
+
+```console
+$ npm run publish
+```
+
+to publish your site. This will:
 
 1. Compare the site resources defined in `src/site.ori` with the resources currently on Netlify.
 1. Upload any files that have changed.
