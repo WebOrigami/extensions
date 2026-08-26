@@ -1,4 +1,4 @@
-import { AsyncMap, trailingSlash } from "@weborigami/async-tree";
+import { AsyncMap, setParent, trailingSlash } from "@weborigami/async-tree";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
@@ -56,21 +56,20 @@ export default class NeocitiesMap extends AsyncMap {
       }
     }
 
+    let value;
     if (isDirectory) {
       const directoryPath = trailingSlash.add(filePath);
-      const directory = Reflect.construct(this.constructor, [
-        this.token,
-        directoryPath,
-      ]);
-      directory.parent = this;
-      return directory;
+      value = Reflect.construct(this.constructor, [this.token, directoryPath]);
     } else if (!response.ok) {
       // Not found or an error
       return undefined;
     } else {
       // File
-      return await response.arrayBuffer();
+      value = await response.arrayBuffer();
     }
+
+    setParent(value, this);
+    return value;
   }
 
   async getFiles() {

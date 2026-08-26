@@ -31,7 +31,6 @@ export default class SftpMap extends AsyncMap {
           scheduleDisconnect: this.scheduleDisconnect,
         },
       ]);
-      setParent(value, this);
     } else {
       // File
       await this.connect();
@@ -52,7 +51,6 @@ export default class SftpMap extends AsyncMap {
               scheduleDisconnect: this.scheduleDisconnect,
             },
           ]);
-          setParent(value, this);
         } else {
           // Some other error
           throw error;
@@ -61,6 +59,9 @@ export default class SftpMap extends AsyncMap {
         this.scheduleDisconnect();
       }
     }
+
+    setParent(value, this);
+
     return value;
   }
 

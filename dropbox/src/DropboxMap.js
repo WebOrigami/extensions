@@ -1,4 +1,9 @@
-import { AsyncMap, naturalOrder, trailingSlash } from "@weborigami/async-tree";
+import {
+  AsyncMap,
+  naturalOrder,
+  setParent,
+  trailingSlash,
+} from "@weborigami/async-tree";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 /**
@@ -74,7 +79,7 @@ export default class DropboxMap extends AsyncMap {
         this.accessToken,
         path,
       ]);
-      subtree.parent = this;
+      setParent(subtree, this);
       return subtree;
     }
 
@@ -95,7 +100,9 @@ export default class DropboxMap extends AsyncMap {
       );
     }
 
-    return response.arrayBuffer();
+    const value = response.arrayBuffer();
+    setParent(value, this);
+    return value;
   }
 
   async getFolderZipArchive() {
