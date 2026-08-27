@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/neocities",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.7.0"
+    "@weborigami/async-tree": "0.7.1"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
