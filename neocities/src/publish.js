@@ -15,6 +15,7 @@ export default async function publish(maplike, options) {
   if (isUnpackable(maplike)) {
     maplike = await maplike.unpack();
   }
+  const tree = Tree.from(maplike, { deep: true });
 
   if (isUnpackable(options)) {
     options = await options.unpack();
@@ -30,7 +31,7 @@ export default async function publish(maplike, options) {
   }
 
   // Get a plain Map of local paths to buffers
-  const localBuffers = await buffers(maplike);
+  const localBuffers = await buffers(tree);
 
   // Get the files currently on the Neocities site
   const serverHashes = await getFileData(token);
