@@ -11,7 +11,7 @@ import toBuffer from "./toBuffer.js";
  */
 export default async function pathHashes(maplike, options = {}) {
   const base = options.base ?? "/";
-  const deflated = await Tree.deflatePaths(maplike, base);
+  const deflated = await Tree.deflatePaths(maplike, { base });
 
   // Map values to hashes
   const mapped = await Tree.map(deflated, hash);

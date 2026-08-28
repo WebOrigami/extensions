@@ -16,7 +16,7 @@ export default async function publish(maplike, options) {
   if (isUnpackable(maplike)) {
     maplike = await maplike.unpack();
   }
-  const tree = Tree.from(maplike);
+  const tree = Tree.from(maplike, { deep: true });
 
   if (isUnpackable(options)) {
     options = await options.unpack();
