@@ -41,16 +41,19 @@ export default async function sftp(options = {}, state = {}) {
     agent = process.env.SSH_AUTH_SOCK;
   }
 
-  const client = new SftpClient();
-  let connected = false;
+  let connectionCount = 0;
   let disconnectTimeout = null;
+
+  const client = new SftpClient("@weborigami/sftp", {
+    close: () => console.log("CLOSE"),
+  });
 
   async function connect() {
     if (disconnectTimeout) {
       clearTimeout(disconnectTimeout);
       disconnectTimeout = null;
     }
-    if (!connected) {
+    if (connectionCount === 0) {
       await client.connect({
         agent,
         host,
@@ -60,20 +63,24 @@ export default async function sftp(options = {}, state = {}) {
         port,
         username,
       });
-      connected = true;
+      connectionCount++;
     }
+    console.log("connected", connectionCount);
   }
 
-  // Close the connection once nothing else calls in; any new call defers this
+  // Close the connection once nothing else calls in; any new call cancels this
   // via connect().
   async function scheduleDisconnect() {
     if (disconnectTimeout) {
       clearTimeout(disconnectTimeout);
     }
     disconnectTimeout = setTimeout(async () => {
-      if (connected) {
-        connected = false;
-        await client.end();
+      if (connectionCount > 0) {
+        connectionCount--;
+        if (connectionCount === 0) {
+          console.log("disconnecting");
+          // await client.end();
+        }
       }
       disconnectTimeout = null;
     }, 10);

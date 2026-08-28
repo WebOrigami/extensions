@@ -19,18 +19,52 @@ export default class SftpMap extends AsyncMap {
     this.scheduleDisconnect = options.scheduleDisconnect;
   }
 
-  async get(key) {
-    let valuePath;
-    if (!key.startsWith("..")) {
-      // Normal traversal
-      valuePath = `${this.path}${key}`;
-    } else if (this.parent) {
-      // Traversal to parent
-      valuePath = trailingSlash.add(path.resolve(this.path, key));
-    } else {
-      // Traversal above the root is not allowed
-      return undefined;
+  async child(key) {
+    const valuePath = this.pathForKey(key);
+
+    const existingChild = await this.get(key);
+    if (existingChild) {
+      if (existingChild instanceof SftpMap) {
+        return existingChild;
+      } else {
+        // File exists, not a directory; delete it
+        await this.delete(key);
+      }
     }
+
+    await this.connect();
+    try {
+      await this.client.mkdir(valuePath);
+    } finally {
+      this.scheduleDisconnect();
+    }
+
+    const child = Reflect.construct(this.constructor, [
+      {
+        client: this.client,
+        connect: this.connect,
+        path: valuePath,
+        scheduleDisconnect: this.scheduleDisconnect,
+      },
+    ]);
+
+    setParent(child, this);
+
+    return child;
+  }
+
+  async delete(key) {
+    const valuePath = this.pathForKey(key);
+    await this.connect();
+    try {
+      await this.client.delete(valuePath);
+    } finally {
+      this.scheduleDisconnect();
+    }
+  }
+
+  async get(key) {
+    const valuePath = this.pathForKey(key);
 
     let value;
     if (trailingSlash.has(valuePath)) {
@@ -89,6 +123,39 @@ export default class SftpMap extends AsyncMap {
     } finally {
       this.scheduleDisconnect();
     }
+  }
+
+  // Return the full path for the given key
+  pathForKey(key) {
+    if (!key.startsWith("..")) {
+      // Normal traversal
+      return `${this.path}${key}`;
+    } else if (this.parent) {
+      // Traversal to parent
+      return trailingSlash.add(path.resolve(this.path, key));
+    }
+
+    // Traversal above the root is not allowed
+    throw new Error(`SftpMap: cannot traverse above root to reach '${key}'`);
+  }
+
+  async set(key, value) {
+    const valuePath = this.pathForKey(key);
+
+    if (!(value instanceof Buffer)) {
+      // Pack as a Node Buffer because that's what the SFTP client expects, and
+      // also to avoid having a string value interpreted as a local file path.
+      value = Buffer.from(value);
+    }
+
+    await this.connect();
+    try {
+      await this.client.put(value, valuePath);
+    } finally {
+      this.scheduleDisconnect();
+    }
+
+    console.log("finished set", key);
   }
 
   trailingSlashKeys = true;
