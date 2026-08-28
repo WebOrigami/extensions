@@ -4,6 +4,7 @@ import {
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
+import path from "node:path";
 
 /**
  * Map driver for an SFTP server path
@@ -19,15 +20,26 @@ export default class SftpMap extends AsyncMap {
   }
 
   async get(key) {
-    const path = `${this.path}${key}`;
+    let valuePath;
+    if (!key.startsWith("..")) {
+      // Normal traversal
+      valuePath = `${this.path}${key}`;
+    } else if (this.parent) {
+      // Traversal to parent
+      valuePath = trailingSlash.add(path.resolve(this.path, key));
+    } else {
+      // Traversal above the root is not allowed
+      return undefined;
+    }
+
     let value;
-    if (trailingSlash.has(path)) {
+    if (trailingSlash.has(valuePath)) {
       // Trailing slash: return a new SftpMap immediately
       value = Reflect.construct(this.constructor, [
         {
           client: this.client,
           connect: this.connect,
-          path,
+          path: valuePath,
           scheduleDisconnect: this.scheduleDisconnect,
         },
       ]);
@@ -35,7 +47,7 @@ export default class SftpMap extends AsyncMap {
       // File
       await this.connect();
       try {
-        value = await this.client.get(path);
+        value = await this.client.get(valuePath);
       } catch (error) {
         const { code } = error;
         if (code === 2) {
@@ -47,7 +59,7 @@ export default class SftpMap extends AsyncMap {
             {
               client: this.client,
               connect: this.connect,
-              path,
+              path: valuePath,
               scheduleDisconnect: this.scheduleDisconnect,
             },
           ]);

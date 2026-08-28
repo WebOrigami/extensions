@@ -8,8 +8,18 @@ import SftpMap from "./SftpMap.js";
  *
  * @param {{ host: string, username: string, passphrase?: string, password?: string, privateKey?: string, port?: number }} options
  */
-export default async function sftp(options, state) {
-  let { agent, passphrase, password, privateKey } = options;
+export default async function sftp(options = {}, state = {}) {
+  let { agent, host, passphrase, password, path, privateKey, port, username } =
+    options;
+
+  if (!host) {
+    throw new Error("sftp: You must specify a host option");
+  }
+
+  if (!username) {
+    // Default to current user
+    username = process.env.USER || process.env.LOGNAME || process.env.USERNAME;
+  }
 
   if (isPacked(passphrase)) {
     passphrase = toString(passphrase);
@@ -37,39 +47,42 @@ export default async function sftp(options, state) {
 
   async function connect() {
     if (disconnectTimeout) {
-      clearImmediate(disconnectTimeout);
+      clearTimeout(disconnectTimeout);
       disconnectTimeout = null;
     }
     if (!connected) {
       await client.connect({
-        ...options,
         agent,
+        host,
         passphrase,
         password,
+        privateKey,
+        port,
+        username,
       });
       connected = true;
     }
   }
 
-  // Close the connection once nothing else calls in before the next tick; any
-  // new call cancels this via connect().
+  // Close the connection once nothing else calls in; any new call defers this
+  // via connect().
   async function scheduleDisconnect() {
     if (disconnectTimeout) {
-      clearImmediate(disconnectTimeout);
+      clearTimeout(disconnectTimeout);
     }
-    disconnectTimeout = setImmediate(async () => {
-      disconnectTimeout = null;
+    disconnectTimeout = setTimeout(async () => {
       if (connected) {
         connected = false;
         await client.end();
       }
-    });
+      disconnectTimeout = null;
+    }, 10);
   }
 
   const tree = new (HandleExtensionsTransform(SftpMap))({
     client,
     connect,
-    path: "/",
+    path,
     scheduleDisconnect,
   });
 
