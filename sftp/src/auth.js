@@ -41,20 +41,28 @@ export default async function sftp(options = {}, state = {}) {
     agent = process.env.SSH_AUTH_SOCK;
   }
 
+  let connectionPromise = null;
   let connectionCount = 0;
   let disconnectTimeout = null;
+  let endPromise = null;
 
   const client = new SftpClient("@weborigami/sftp", {
     close: () => console.log("CLOSE"),
   });
 
   async function connect() {
+    connectionCount++;
+    console.log("connect", connectionCount);
     if (disconnectTimeout) {
       clearTimeout(disconnectTimeout);
       disconnectTimeout = null;
     }
-    if (connectionCount === 0) {
-      await client.connect({
+    if (connectionCount > 0 && connectionPromise === null) {
+      if (endPromise) {
+        await endPromise;
+        endPromise = null;
+      }
+      connectionPromise = client.connect({
         agent,
         host,
         passphrase,
@@ -63,27 +71,45 @@ export default async function sftp(options = {}, state = {}) {
         port,
         username,
       });
-      connectionCount++;
+      console.log("connected");
     }
-    console.log("connected", connectionCount);
+    return connectionPromise;
   }
 
   // Close the connection once nothing else calls in; any new call cancels this
   // via connect().
   async function scheduleDisconnect() {
+    if (connectionCount > 0) {
+      connectionCount--;
+    }
+    console.log("scheduleDisconnect", connectionCount);
     if (disconnectTimeout) {
       clearTimeout(disconnectTimeout);
     }
     disconnectTimeout = setTimeout(async () => {
-      if (connectionCount > 0) {
-        connectionCount--;
-        if (connectionCount === 0) {
-          console.log("disconnecting");
-          // await client.end();
-        }
+      if (connectionCount === 0 && connectionPromise && !endPromise) {
+        console.log("disconnecting");
+        endPromise = client.end();
+        await endPromise;
+        connectionPromise = null;
+        endPromise = null;
       }
       disconnectTimeout = null;
     }, 10);
+  }
+
+  let pending = Promise.resolve();
+
+  function serialized(fnName, ...args) {
+    const result = pending.then(async () => {
+      console.log("calling client", fnName);
+      return client[fnName](...args);
+    });
+
+    // Keep the chain alive even if this call rejects.
+    pending = result.catch(() => {});
+
+    return result;
   }
 
   const tree = new (HandleExtensionsTransform(SftpMap))({
@@ -91,6 +117,7 @@ export default async function sftp(options = {}, state = {}) {
     connect,
     path,
     scheduleDisconnect,
+    serialized,
   });
 
   // Set globals for extension handlers

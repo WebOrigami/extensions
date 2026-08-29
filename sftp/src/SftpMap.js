@@ -17,6 +17,7 @@ export default class SftpMap extends AsyncMap {
     this.connect = options.connect;
     this.path = trailingSlash.add(options.path);
     this.scheduleDisconnect = options.scheduleDisconnect;
+    this.serialized = options.serialized;
   }
 
   async child(key) {
@@ -34,7 +35,8 @@ export default class SftpMap extends AsyncMap {
 
     await this.connect();
     try {
-      await this.client.mkdir(valuePath);
+      // await this.client.mkdir(valuePath);
+      await this.serialized("mkdir", valuePath);
     } finally {
       this.scheduleDisconnect();
     }
@@ -45,6 +47,7 @@ export default class SftpMap extends AsyncMap {
         connect: this.connect,
         path: valuePath,
         scheduleDisconnect: this.scheduleDisconnect,
+        serialized: this.serialized,
       },
     ]);
 
@@ -57,7 +60,8 @@ export default class SftpMap extends AsyncMap {
     const valuePath = this.pathForKey(key);
     await this.connect();
     try {
-      await this.client.delete(valuePath);
+      // await this.client.delete(valuePath);
+      await this.serialized("delete", valuePath);
     } finally {
       this.scheduleDisconnect();
     }
@@ -75,13 +79,15 @@ export default class SftpMap extends AsyncMap {
           connect: this.connect,
           path: valuePath,
           scheduleDisconnect: this.scheduleDisconnect,
+          serialized: this.serialized,
         },
       ]);
     } else {
       // File
       await this.connect();
       try {
-        value = await this.client.get(valuePath);
+        // value = await this.client.get(valuePath);
+        value = await this.serialized("get", valuePath);
       } catch (error) {
         const { code } = error;
         if (code === 2) {
@@ -95,6 +101,7 @@ export default class SftpMap extends AsyncMap {
               connect: this.connect,
               path: valuePath,
               scheduleDisconnect: this.scheduleDisconnect,
+              serialized: this.serialized,
             },
           ]);
         } else {
@@ -114,7 +121,8 @@ export default class SftpMap extends AsyncMap {
   async *keys() {
     await this.connect();
     try {
-      const fileList = await this.client.list(this.path);
+      // const fileList = await this.client.list(this.path);
+      const fileList = await this.serialized("list", this.path);
       const keys = fileList.map((file) =>
         trailingSlash.toggle(file.name, file.type === "d"),
       );
@@ -140,6 +148,7 @@ export default class SftpMap extends AsyncMap {
   }
 
   async set(key, value) {
+    console.log("start set", key);
     const valuePath = this.pathForKey(key);
 
     if (!(value instanceof Buffer)) {
@@ -150,12 +159,13 @@ export default class SftpMap extends AsyncMap {
 
     await this.connect();
     try {
-      await this.client.put(value, valuePath);
+      // await this.client.put(value, valuePath);
+      await this.serialized("put", value, valuePath);
     } finally {
       this.scheduleDisconnect();
     }
 
-    console.log("finished set", key);
+    console.log("finish set", key);
   }
 
   trailingSlashKeys = true;
