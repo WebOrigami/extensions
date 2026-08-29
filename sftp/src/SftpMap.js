@@ -13,7 +13,7 @@ export default class SftpMap extends AsyncMap {
   constructor(options) {
     super();
 
-    this.callClient = options.callClient;
+    this.client = options.client;
     this.path = trailingSlash.add(options.path);
   }
 
@@ -25,18 +25,18 @@ export default class SftpMap extends AsyncMap {
       if (existingChild instanceof SftpMap) {
         return existingChild;
       } else {
-        // File exists, not a directory; delete it
+        // A file exists with the desired directory name; delete it
         await this.delete(key);
       }
     }
 
     // Create the directory on the SFTP server
-    await this.callClient("mkdir", valuePath);
+    await this.client.mkdir(valuePath);
 
     // Return an SftpMap for the new directory
     const child = Reflect.construct(this.constructor, [
       {
-        callClient: this.callClient,
+        client: this.client,
         path: valuePath,
       },
     ]);
@@ -46,7 +46,7 @@ export default class SftpMap extends AsyncMap {
 
   async delete(key) {
     const valuePath = this.pathForKey(key);
-    await this.callClient("delete", valuePath);
+    await this.client.delete(valuePath);
   }
 
   async get(key) {
@@ -57,14 +57,14 @@ export default class SftpMap extends AsyncMap {
       // Trailing slash: return a new SftpMap immediately
       value = Reflect.construct(this.constructor, [
         {
-          callClient: this.callClient,
+          client: this.client,
           path: valuePath,
         },
       ]);
     } else {
       // File
       try {
-        value = await this.callClient("get", valuePath);
+        value = await this.client.get(valuePath);
       } catch (error) {
         const { code } = error;
         if (code === 2) {
@@ -74,7 +74,7 @@ export default class SftpMap extends AsyncMap {
           // Asked for a file but it's a directory
           value = Reflect.construct(this.constructor, [
             {
-              callClient: this.callClient,
+              client: this.client,
               path: valuePath,
             },
           ]);
@@ -91,7 +91,7 @@ export default class SftpMap extends AsyncMap {
   }
 
   async *keys() {
-    const fileList = await this.callClient("list", this.path);
+    const fileList = await this.client.list(this.path);
     const keys = fileList.map((file) =>
       trailingSlash.toggle(file.name, file.type === "d"),
     );
@@ -114,18 +114,18 @@ export default class SftpMap extends AsyncMap {
   }
 
   async set(key, value) {
-    console.log("start set", key);
     const valuePath = this.pathForKey(key);
+
+    // Ensure the target directory exists
+    const parentPath = path.dirname(valuePath);
+    await this.client.mkdir(parentPath, true);
 
     if (!(value instanceof Buffer)) {
       // Pack as a Node Buffer because that's what the SFTP client expects, and
       // also to avoid having a string value interpreted as a local file path.
       value = Buffer.from(value);
     }
-
-    await this.callClient("put", value, valuePath);
-
-    console.log("finish set", key);
+    await this.client.put(value, valuePath);
   }
 
   trailingSlashKeys = true;

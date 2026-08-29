@@ -9,6 +9,7 @@ import SftpMap from "./SftpMap.js";
  * @param {{ host: string, username: string, passphrase?: string, password?: string, privateKey?: string, port?: number }} options
  */
 export default async function sftp(options = {}, state = {}) {
+  // Validate options
   let { agent, host, passphrase, password, path, privateKey, port, username } =
     options;
 
@@ -41,88 +42,18 @@ export default async function sftp(options = {}, state = {}) {
     agent = process.env.SSH_AUTH_SOCK;
   }
 
-  let connectionPromise = null;
-  let connectionCount = 0;
-  let disconnectTimeout = null;
-  let endPromise = null;
-
-  const client = new SftpClient("@weborigami/sftp", {
-    close: () => console.log("CLOSE"),
+  const wrapper = new ClientWrapper({
+    agent,
+    host,
+    passphrase,
+    password,
+    privateKey,
+    port,
+    username,
   });
 
-  async function connect() {
-    connectionCount++;
-    console.log("connect", connectionCount);
-    if (disconnectTimeout) {
-      clearTimeout(disconnectTimeout);
-      disconnectTimeout = null;
-    }
-    if (connectionCount > 0 && connectionPromise === null) {
-      if (endPromise) {
-        await endPromise;
-        endPromise = null;
-      }
-      connectionPromise = client.connect({
-        agent,
-        host,
-        passphrase,
-        password,
-        privateKey,
-        port,
-        username,
-      });
-      console.log("connected");
-    }
-    return connectionPromise;
-  }
-
-  // Close the connection once nothing else calls in; any new call cancels this
-  // via connect().
-  async function scheduleDisconnect() {
-    if (connectionCount > 0) {
-      connectionCount--;
-    }
-    console.log("scheduleDisconnect", connectionCount);
-    if (disconnectTimeout) {
-      clearTimeout(disconnectTimeout);
-    }
-    disconnectTimeout = setTimeout(async () => {
-      if (connectionCount === 0 && connectionPromise && !endPromise) {
-        console.log("disconnecting");
-        endPromise = client.end();
-        await endPromise;
-        connectionPromise = null;
-        endPromise = null;
-      }
-      disconnectTimeout = null;
-    }, 10);
-  }
-
-  let pending = Promise.resolve();
-
-  function serialized(fnName, ...args) {
-    const result = pending.then(async () => {
-      console.log("calling client", fnName);
-      return client[fnName](...args);
-    });
-
-    // Keep the chain alive even if this call rejects.
-    pending = result.catch(() => {});
-
-    return result;
-  }
-
-  async function callClient(fnName, ...args) {
-    await connect();
-    try {
-      return serialized(fnName, ...args);
-    } finally {
-      scheduleDisconnect();
-    }
-  }
-
   const tree = new (HandleExtensionsTransform(SftpMap))({
-    callClient,
+    client: wrapper,
     path,
   });
 
@@ -132,3 +63,106 @@ export default async function sftp(options = {}, state = {}) {
   return tree;
 }
 sftp.needsState = true;
+
+/**
+ * Wrap the ssh2-sftp-client to ensure that only one connection is active at a
+ * time, that any client calls are serialized, that the connection is reused
+ * during a given active period of time, and that the connection is closed after
+ * a period of inactivity.
+ *
+ * Note that ssh2-sftp-client itself is a wrapper around ssh2.
+ */
+class ClientWrapper {
+  constructor(connectionOptions) {
+    this.client = new SftpClient("@weborigami/sftp");
+    this.connectionCount = 0;
+    this.connectionOptions = connectionOptions;
+    this.disconnectTimeout = null;
+    this.connectionPromise = null;
+    this.endPromise = null;
+    this.pending = Promise.resolve();
+  }
+
+  async callClient(fnName, ...args) {
+    await this.connect();
+    try {
+      return this.serialized(fnName, ...args);
+    } finally {
+      this.scheduleDisconnect();
+    }
+  }
+
+  async connect() {
+    this.connectionCount++;
+    if (this.disconnectTimeout) {
+      clearTimeout(this.disconnectTimeout);
+      this.disconnectTimeout = null;
+    }
+    if (this.connectionCount > 0 && this.connectionPromise === null) {
+      if (this.endPromise) {
+        await this.endPromise;
+      }
+      this.connectionPromise = this.client.connect(this.connectionOptions);
+    }
+    return this.connectionPromise;
+  }
+
+  async delete(path) {
+    return this.callClient("delete", path);
+  }
+
+  async get(path) {
+    return this.callClient("get", path);
+  }
+
+  async list(path) {
+    return this.callClient("list", path);
+  }
+
+  async mkdir(path, recursive = false) {
+    await this.callClient("mkdir", path, recursive);
+  }
+
+  async put(value, path) {
+    return this.callClient("put", value, path);
+  }
+
+  async scheduleDisconnect() {
+    if (this.connectionCount > 0) {
+      this.connectionCount--;
+    }
+    if (this.disconnectTimeout) {
+      clearTimeout(this.disconnectTimeout);
+    }
+    this.disconnectTimeout = setTimeout(async () => {
+      if (
+        this.connectionCount === 0 &&
+        this.connectionPromise &&
+        !this.endPromise
+      ) {
+        this.endPromise = this.client.end();
+        await this.endPromise;
+        this.connectionPromise = null;
+        this.endPromise = null;
+      }
+      this.disconnectTimeout = null;
+    }, 10);
+  }
+
+  /**
+   * The ssh2-sftp-client docs indicate that we should avoid making multiple
+   * async calls to the client and trying to resolve them all with Promise.all.
+   * That's exactly what the Origami `copy` and `assign` functions do, so we
+   * need to serialize the calls to the client.
+   */
+  async serialized(fnName, ...args) {
+    const result = this.pending.then(async () => {
+      return this.client[fnName](...args);
+    });
+
+    // Keep the chain alive even if this call rejects.
+    this.pending = result.catch(() => {});
+
+    return result;
+  }
+}
