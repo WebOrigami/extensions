@@ -13,11 +13,8 @@ export default class SftpMap extends AsyncMap {
   constructor(options) {
     super();
 
-    this.client = options.client;
-    this.connect = options.connect;
+    this.callClient = options.callClient;
     this.path = trailingSlash.add(options.path);
-    this.scheduleDisconnect = options.scheduleDisconnect;
-    this.serialized = options.serialized;
   }
 
   async child(key) {
@@ -33,38 +30,23 @@ export default class SftpMap extends AsyncMap {
       }
     }
 
-    await this.connect();
-    try {
-      // await this.client.mkdir(valuePath);
-      await this.serialized("mkdir", valuePath);
-    } finally {
-      this.scheduleDisconnect();
-    }
+    // Create the directory on the SFTP server
+    await this.callClient("mkdir", valuePath);
 
+    // Return an SftpMap for the new directory
     const child = Reflect.construct(this.constructor, [
       {
-        client: this.client,
-        connect: this.connect,
+        callClient: this.callClient,
         path: valuePath,
-        scheduleDisconnect: this.scheduleDisconnect,
-        serialized: this.serialized,
       },
     ]);
-
     setParent(child, this);
-
     return child;
   }
 
   async delete(key) {
     const valuePath = this.pathForKey(key);
-    await this.connect();
-    try {
-      // await this.client.delete(valuePath);
-      await this.serialized("delete", valuePath);
-    } finally {
-      this.scheduleDisconnect();
-    }
+    await this.callClient("delete", valuePath);
   }
 
   async get(key) {
@@ -75,19 +57,14 @@ export default class SftpMap extends AsyncMap {
       // Trailing slash: return a new SftpMap immediately
       value = Reflect.construct(this.constructor, [
         {
-          client: this.client,
-          connect: this.connect,
+          callClient: this.callClient,
           path: valuePath,
-          scheduleDisconnect: this.scheduleDisconnect,
-          serialized: this.serialized,
         },
       ]);
     } else {
       // File
-      await this.connect();
       try {
-        // value = await this.client.get(valuePath);
-        value = await this.serialized("get", valuePath);
+        value = await this.callClient("get", valuePath);
       } catch (error) {
         const { code } = error;
         if (code === 2) {
@@ -97,19 +74,14 @@ export default class SftpMap extends AsyncMap {
           // Asked for a file but it's a directory
           value = Reflect.construct(this.constructor, [
             {
-              client: this.client,
-              connect: this.connect,
+              callClient: this.callClient,
               path: valuePath,
-              scheduleDisconnect: this.scheduleDisconnect,
-              serialized: this.serialized,
             },
           ]);
         } else {
           // Some other error
           throw error;
         }
-      } finally {
-        this.scheduleDisconnect();
       }
     }
 
@@ -119,18 +91,12 @@ export default class SftpMap extends AsyncMap {
   }
 
   async *keys() {
-    await this.connect();
-    try {
-      // const fileList = await this.client.list(this.path);
-      const fileList = await this.serialized("list", this.path);
-      const keys = fileList.map((file) =>
-        trailingSlash.toggle(file.name, file.type === "d"),
-      );
-      keys.sort(naturalOrder);
-      yield* keys;
-    } finally {
-      this.scheduleDisconnect();
-    }
+    const fileList = await this.callClient("list", this.path);
+    const keys = fileList.map((file) =>
+      trailingSlash.toggle(file.name, file.type === "d"),
+    );
+    keys.sort(naturalOrder);
+    yield* keys;
   }
 
   // Return the full path for the given key
@@ -157,13 +123,7 @@ export default class SftpMap extends AsyncMap {
       value = Buffer.from(value);
     }
 
-    await this.connect();
-    try {
-      // await this.client.put(value, valuePath);
-      await this.serialized("put", value, valuePath);
-    } finally {
-      this.scheduleDisconnect();
-    }
+    await this.callClient("put", value, valuePath);
 
     console.log("finish set", key);
   }

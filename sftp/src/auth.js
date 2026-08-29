@@ -112,12 +112,18 @@ export default async function sftp(options = {}, state = {}) {
     return result;
   }
 
+  async function callClient(fnName, ...args) {
+    await connect();
+    try {
+      return serialized(fnName, ...args);
+    } finally {
+      scheduleDisconnect();
+    }
+  }
+
   const tree = new (HandleExtensionsTransform(SftpMap))({
-    client,
-    connect,
+    callClient,
     path,
-    scheduleDisconnect,
-    serialized,
   });
 
   // Set globals for extension handlers
