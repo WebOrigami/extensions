@@ -127,6 +127,10 @@ class ClientWrapper {
     return this.callClient("put", value, path);
   }
 
+  async rmdir(path, recursive = false) {
+    return this.callClient("rmdir", path, recursive);
+  }
+
   async scheduleDisconnect() {
     if (this.connectionCount > 0) {
       this.connectionCount--;

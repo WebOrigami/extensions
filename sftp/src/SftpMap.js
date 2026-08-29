@@ -46,7 +46,24 @@ export default class SftpMap extends AsyncMap {
 
   async delete(key) {
     const valuePath = this.pathForKey(key);
-    await this.client.delete(valuePath);
+
+    if (trailingSlash.has(valuePath)) {
+      // Trailing slash: delete the directory
+      await this.client.rmdir(valuePath, true);
+      return;
+    }
+
+    try {
+      await this.client.delete(valuePath);
+    } catch (error) {
+      const { code } = error;
+      if (code === 3) {
+        // Permission denied: probably a directory, try deleting it
+        await this.client.rmdir(valuePath, true);
+        return;
+      }
+      throw error;
+    }
   }
 
   async get(key) {

@@ -68,12 +68,28 @@ describe("SftpMap", () => {
     await fixtureFiles.delete("temp.txt");
   });
 
-  test("can delete a value", async () => {
+  test("can delete a file", async () => {
     // Create the file directly
     await fixtureFiles.set("temp.txt", "Hello, Origami!");
 
     await fixture.delete("temp.txt");
     const value = await fixture.get("temp.txt");
+    assert.equal(value, undefined);
+  });
+
+  test("can delete a directory with trailing slash", async () => {
+    // Create the directory directly
+    await fixtureFiles.child("temp");
+    await fixture.delete("temp/");
+    const value = await fixtureFiles.get("temp");
+    assert.equal(value, undefined);
+  });
+
+  test("can delete a directory without trailing slash", async () => {
+    // Create the directory directly
+    await fixtureFiles.child("temp");
+    await fixture.delete("temp");
+    const value = await fixtureFiles.get("temp");
     assert.equal(value, undefined);
   });
 
