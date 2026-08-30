@@ -4,6 +4,7 @@ import {
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
+import { symbols } from "@weborigami/language";
 import path from "node:path";
 
 /**
@@ -115,6 +116,8 @@ export default class SftpMap extends AsyncMap {
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  [symbols.noCacheSymbol] = true;
 
   // Return the full path for the given key
   pathForKey(key) {
