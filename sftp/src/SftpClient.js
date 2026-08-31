@@ -1,3 +1,4 @@
+import { isPacked, toString } from "@weborigami/async-tree";
 import posix from "node:path/posix";
 import { Client as SshClient } from "ssh2";
 
@@ -7,10 +8,54 @@ import { Client as SshClient } from "ssh2";
  * This ensures that only one connection is active at a time, that the
  * connection is reused during a given active period of time, and that the
  * connection is closed after a period of inactivity.
+ *
+ * @param {{ agent?: string, host: string, passphrase?: string, password?: string, port?: number, privateKey?: string, username?: string }} options
  */
 export default class SftpClient {
   constructor(options) {
-    this.options = options;
+    // Validate options
+    let { agent, host, passphrase, password, port, privateKey, username } =
+      options;
+
+    if (!host) {
+      throw new Error("sftp: You must specify a host option");
+    }
+
+    if (!username) {
+      // Default to current user
+      username =
+        process.env.USER || process.env.LOGNAME || process.env.USERNAME;
+    }
+
+    if (isPacked(passphrase)) {
+      passphrase = toString(passphrase);
+      passphrase = passphrase.trim();
+    }
+    if (isPacked(password)) {
+      password = toString(password);
+      password = password.trim();
+    }
+
+    if (
+      !(
+        agent ||
+        (typeof password === "string" && password.length > 0) ||
+        (typeof privateKey === "string" && privateKey.length > 0)
+      )
+    ) {
+      // Use SSH agent
+      agent = process.env.SSH_AUTH_SOCK;
+    }
+
+    this.options = {
+      agent,
+      host,
+      passphrase,
+      password,
+      port,
+      privateKey,
+      username,
+    };
 
     this.client = new SshClient();
     this.sftp = null;
