@@ -4,10 +4,9 @@ import { Client as SshClient } from "ssh2";
 /**
  * An SFTP client backed by ssh2
  *
- * This ensures that only one connection is active at a time, that any client
- * calls are serialized, that the connection is reused during a given active
- * period of time, and that the connection is closed after a period of
- * inactivity.
+ * This ensures that only one connection is active at a time, that the
+ * connection is reused during a given active period of time, and that the
+ * connection is closed after a period of inactivity.
  */
 export default class SftpClient {
   constructor(options) {
@@ -126,7 +125,7 @@ export default class SftpClient {
   }
 
   async rmdir(path) {
-    // SSH2 does not support recursive directory deletion, so we need to
+    // SSH does not support recursive directory deletion, so we need to
     // implement it ourselves.
     const entries = await this.readdir(path);
     for (const entry of entries) {
@@ -162,22 +161,22 @@ export default class SftpClient {
     }, 10);
   }
 
-  /**
-   * The ssh2-sftp-client docs indicate that we should avoid making multiple
-   * async calls to the client and trying to resolve them all with Promise.all.
-   * That's exactly what the Origami `copy` and `assign` functions do, so we
-   * need to serialize the calls to the client.
-   */
-  async serialized(fnName, ...args) {
-    const result = this.pending.then(async () => {
-      return this.client[fnName](...args);
-    });
+  // /**
+  //  * The ssh2-sftp-client docs indicate that we should avoid making multiple
+  //  * async calls to the client and trying to resolve them all with Promise.all.
+  //  * That's exactly what the Origami `copy` and `assign` functions do, so we
+  //  * need to serialize the calls to the client.
+  //  */
+  // async serialized(fnName, ...args) {
+  //   const result = this.pending.then(async () => {
+  //     return this.client[fnName](...args);
+  //   });
 
-    // Keep the chain alive even if this call rejects.
-    this.pending = result.catch(() => {});
+  //   // Keep the chain alive even if this call rejects.
+  //   this.pending = result.catch(() => {});
 
-    return result;
-  }
+  //   return result;
+  // }
 
   async unlink(path) {
     return this.callSftp("unlink", path);
