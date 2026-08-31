@@ -36,19 +36,12 @@ export default class SftpClient {
       password = password.trim();
     }
 
-    if (
-      !(
-        agent ||
-        (typeof password === "string" && password.length > 0) ||
-        (typeof privateKey === "string" && privateKey.length > 0)
-      )
-    ) {
-      // Use SSH agent
-      agent = process.env.SSH_AUTH_SOCK;
-    }
+    // Default to SSH agent
+    agent ??= process.env.SSH_AUTH_SOCK;
 
     this.options = {
       agent,
+      // debug: console.error,
       host,
       passphrase,
       password,
@@ -70,8 +63,7 @@ export default class SftpClient {
   async callSftp(fnName, ...args) {
     await this.connect();
     try {
-      // return this.serialized(fnName, ...args);
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         this.sftp[fnName](...args, (error, result) => {
           if (error) {
             reject(error);
@@ -197,31 +189,18 @@ export default class SftpClient {
         this.connectionPromise &&
         !this.endPromise
       ) {
-        this.endPromise = this.client.end();
+        this.endPromise = new Promise((resolve) => {
+          this.client.once("close", resolve);
+          this.client.end();
+        });
         await this.endPromise;
+        this.sftp = null;
         this.connectionPromise = null;
         this.endPromise = null;
       }
       this.disconnectTimeout = null;
-    }, 10);
+    });
   }
-
-  // /**
-  //  * The ssh2-sftp-client docs indicate that we should avoid making multiple
-  //  * async calls to the client and trying to resolve them all with Promise.all.
-  //  * That's exactly what the Origami `copy` and `assign` functions do, so we
-  //  * need to serialize the calls to the client.
-  //  */
-  // async serialized(fnName, ...args) {
-  //   const result = this.pending.then(async () => {
-  //     return this.client[fnName](...args);
-  //   });
-
-  //   // Keep the chain alive even if this call rejects.
-  //   this.pending = result.catch(() => {});
-
-  //   return result;
-  // }
 
   async unlink(path) {
     return this.callSftp("unlink", path);

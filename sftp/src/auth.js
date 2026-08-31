@@ -5,19 +5,15 @@ import SftpMap from "./SftpMap.js";
 /**
  * Return an AsyncMap for the files in a remote SFTP server.
  *
+ * @typedef {import("@weborigami/async-tree").AsyncMap} AsyncMap
+ *
  * @param {{ agent?: string, host: string, passphrase?: string, password?: string, path?: string, port?: number, privateKey?: string, username: string }} options
+ * @returns {Promise<AsyncMap>}
  */
 export default async function sftp(options = {}, state = {}) {
-  const {
-    agent,
-    host,
-    passphrase,
-    password,
-    path,
-    port,
-    privateKey,
-    username,
-  } = options;
+  const { agent, host, passphrase, password, port, privateKey, username } =
+    options;
+  const path = options.path ?? "/";
 
   const client = new SftpClient({
     agent,
