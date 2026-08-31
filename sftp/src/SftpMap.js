@@ -55,7 +55,7 @@ export default class SftpMap extends AsyncMap {
     }
 
     try {
-      await this.client.delete(valuePath);
+      await this.client.unlink(valuePath);
     } catch (error) {
       const { code } = error;
       if (code === 3) {
@@ -109,9 +109,9 @@ export default class SftpMap extends AsyncMap {
   }
 
   async *keys() {
-    const fileList = await this.client.list(this.path);
-    const keys = fileList.map((file) =>
-      trailingSlash.toggle(file.name, file.type === "d"),
+    const list = await this.client.readdir(this.path);
+    const keys = list.map((item) =>
+      trailingSlash.toggle(item.filename, item.attrs.isDirectory()),
     );
     keys.sort(naturalOrder);
     yield* keys;
@@ -138,7 +138,7 @@ export default class SftpMap extends AsyncMap {
 
     // Ensure the target directory exists
     const parentPath = path.dirname(valuePath);
-    await this.client.mkdir(parentPath, true);
+    await this.client.mkdir(parentPath);
 
     if (!(value instanceof Buffer)) {
       // Pack as a Node Buffer because that's what the SFTP client expects, and

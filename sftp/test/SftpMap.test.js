@@ -1,7 +1,7 @@
 import { FileMap, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import auth from "../src/auth.js";
+import auth from "../src/auth2.js";
 
 const parentUrl = new URL(".", import.meta.url);
 const parent = new FileMap(parentUrl);

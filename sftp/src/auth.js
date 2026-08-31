@@ -45,10 +45,10 @@ export default async function sftp(options = {}, state = {}) {
   const wrapper = new ClientWrapper({
     agent,
     host,
-    passphrase,
-    password,
-    privateKey,
-    port,
+    // passphrase,
+    // password,
+    // privateKey,
+    // port,
     username,
   });
 
