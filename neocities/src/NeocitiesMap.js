@@ -1,4 +1,10 @@
-import { AsyncMap, setParent, trailingSlash } from "@weborigami/async-tree";
+import {
+  AsyncMap,
+  setParent,
+  SyncMap,
+  trailingSlash,
+  Tree,
+} from "@weborigami/async-tree";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
@@ -127,6 +133,32 @@ export default class NeocitiesMap extends AsyncMap {
   async *keys() {
     const files = await this.getFiles();
     yield* Object.keys(files);
+  }
+
+  async manifest() {
+    const pathArg = this.path ? encodeURIComponent(this.path) : "/";
+    const url = `https://neocities.org/api/list?path=${pathArg}`;
+    const response = await fetchWithBackoff(url, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+    const data = await response.json();
+    let entries = data.files;
+
+    // Convert from Neocities format to an object mapping key to hash (for
+    // files) or null (for directories)
+    const mapped = entries.map((file) => [
+      file.path,
+      file.is_directory ? null : file.sha1_hash,
+    ]);
+
+    // Filter out directories
+    const filtered = mapped.filter(([, value]) => value !== null);
+    const flat = new SyncMap(filtered);
+
+    const inflated = await Tree.inflatePaths(flat);
+    return inflated;
   }
 
   trailingSlashKeys = true;
