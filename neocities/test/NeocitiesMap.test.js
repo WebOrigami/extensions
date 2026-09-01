@@ -42,7 +42,7 @@ describe("NeocitiesMap", () => {
     assert(keys.includes("styles.css"));
   });
 
-  test.only("assign method can upload and delete files", async () => {
+  test("assign method can upload and delete files", async () => {
     const source1 = {
       "test.txt": "This is a test file.",
       subdir: {
