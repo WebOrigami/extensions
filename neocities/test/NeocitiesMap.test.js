@@ -9,7 +9,7 @@ const parent = new FileMap(parentUrl);
 const tokenPath = new URL("../token.txt", import.meta.url);
 const tokenBuffer = await fs.readFile(tokenPath);
 const token = new TextDecoder().decode(tokenBuffer).trim();
-const root = await auth(token, { parent });
+const root = await auth({ token }, { parent });
 
 describe("NeocitiesMap", () => {
   test("get method returns a file", async () => {
@@ -40,5 +40,29 @@ describe("NeocitiesMap", () => {
     const assets = await root.get("assets/");
     const keys = await Tree.keys(assets);
     assert(keys.includes("styles.css"));
+  });
+
+  test.only("assign method can upload and delete files", async () => {
+    const source1 = {
+      "test.txt": "This is a test file.",
+      subdir: {
+        "nested.txt": "This is a nested file.",
+      },
+    };
+    await root.assign(source1);
+
+    const keys1 = await Tree.keys(root);
+    assert(keys1.includes("test.txt"));
+    assert(keys1.includes("subdir/"));
+
+    const source2 = {
+      "test.txt": undefined, // Delete this file
+      subdir: undefined, // Delete this directory
+    };
+    await root.assign(source2);
+
+    const keys2 = await Tree.keys(root);
+    assert(!keys2.includes("test.txt"));
+    assert(!keys2.includes("subdir/"));
   });
 });

@@ -41,6 +41,8 @@ export default class NeocitiesMap extends AsyncMap {
     if (deletions.size > 0) {
       await deleteFiles(deletions, this.token);
     }
+
+    this._files = null; // Clear cached file list
   }
 
   async fileEntryForKey(key) {
