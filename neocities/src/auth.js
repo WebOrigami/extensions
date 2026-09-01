@@ -2,7 +2,16 @@ import { isUnpackable } from "@weborigami/async-tree";
 import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import NeocitiesMap from "./NeocitiesMap.js";
 
-export default async function auth(token, state) {
+/**
+ * Return a NeocitiesMap for the given options.
+ *
+ * @param {{ token: string|Uint8Array, url?: string }} options
+ * @param {*} state
+ * @returns
+ */
+export default async function auth(options, state) {
+  let { token, url } = options;
+
   if (isUnpackable(token)) {
     token = await token.unpack();
     token = token.trim();
@@ -11,7 +20,11 @@ export default async function auth(token, state) {
     throw new ReferenceError("Neocities: token was not provided");
   }
 
-  const tree = new (HandleExtensionsTransform(NeocitiesMap))(token);
+  if (url && !(url.startsWith("http://") || url.startsWith("https://"))) {
+    url = `https://${url}`;
+  }
+
+  const tree = new (HandleExtensionsTransform(NeocitiesMap))({ token, url });
 
   // Set globals for extension handlers
   const globals = state?.globals || (await coreGlobals());

@@ -10,13 +10,13 @@ import {
 import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
-  constructor(token, path = "") {
+  constructor(options, path = "") {
     super();
-    this.token = token;
+    this.token = options.token;
+    this._url = options.url;
     this.path = path ? trailingSlash.add(path) : "";
 
     this._files = null;
-    this._siteName = null;
   }
 
   async assign(source) {
@@ -62,10 +62,10 @@ export default class NeocitiesMap extends AsyncMap {
     let response;
     if (!isDirectory) {
       // Might be a file or a directory
-      const siteName = await this.getSiteName();
-      const url = `https://${siteName}.neocities.org/${filePath}`;
+      this._url ??= await this.getSiteUrl();
+      const fileUrl = `${this._url}/${filePath}`;
 
-      response = await fetchWithBackoff(url, {
+      response = await fetchWithBackoff(fileUrl, {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
@@ -91,7 +91,13 @@ export default class NeocitiesMap extends AsyncMap {
     let value;
     if (isDirectory) {
       const directoryPath = trailingSlash.add(filePath);
-      value = Reflect.construct(this.constructor, [this.token, directoryPath]);
+      value = Reflect.construct(this.constructor, [
+        {
+          token: this.token,
+          url: this._url,
+        },
+        directoryPath,
+      ]);
     } else if (!response.ok) {
       // Not found or an error
       return undefined;
@@ -139,21 +145,14 @@ export default class NeocitiesMap extends AsyncMap {
     return this._files;
   }
 
-  async getSiteName() {
-    if (!this._siteName) {
-      const response = await fetchWithBackoff(
-        `https://neocities.org/api/info`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        },
-      );
-      const data = await response.json();
-      this._siteName = data.info.sitename;
-    }
-
-    return this._siteName;
+  async getSiteUrl() {
+    const response = await fetchWithBackoff(`https://neocities.org/api/info`, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+    const data = await response.json();
+    return `https://${data.info.sitename}.neocities.org`;
   }
 
   async *keys() {
