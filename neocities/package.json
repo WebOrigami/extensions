@@ -2,7 +2,7 @@
   "name": "@weborigami/neocities",
   "version": "0.0.19",
   "type": "module",
-  "main": "main.js",
+  "main": "src/auth.js",
   "dependencies": {
     "@weborigami/async-tree": "0.7.1"
   },
