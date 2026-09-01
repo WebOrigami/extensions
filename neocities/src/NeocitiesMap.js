@@ -1,5 +1,7 @@
 import {
   AsyncMap,
+  isUnpackable,
+  pack,
   setParent,
   SyncMap,
   trailingSlash,
@@ -15,6 +17,30 @@ export default class NeocitiesMap extends AsyncMap {
 
     this._files = null;
     this._siteName = null;
+  }
+
+  async assign(source) {
+    if (isUnpackable(source)) {
+      source = await source.unpack();
+    }
+    const tree = Tree.from(source, { deep: true });
+
+    const deflated = await Tree.deflatePaths(tree);
+    const uploadFilter = await Tree.filter(deflated, Boolean);
+    const uploads = await Tree.sync(uploadFilter);
+    const deleteFilter = await Tree.filter(
+      deflated,
+      (value) => value == undefined,
+    );
+    const deletions = await Tree.sync(deleteFilter);
+
+    if (uploads.size > 0) {
+      await uploadFiles(uploads, this.token);
+    }
+
+    if (deletions.size > 0) {
+      await deleteFiles(deletions, this.token);
+    }
   }
 
   async fileEntryForKey(key) {
@@ -162,4 +188,50 @@ export default class NeocitiesMap extends AsyncMap {
   }
 
   trailingSlashKeys = true;
+}
+
+// Delete multiple files
+async function deleteFiles(map, token) {
+  const body = new FormData();
+  for (const path of map.keys()) {
+    body.append("filenames[]", path);
+  }
+
+  const response = await fetchWithBackoff(`https://neocities.org/api/delete`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Neocities delete failed: ${response.status} ${response.statusText}`,
+    );
+  }
+}
+
+// Upload multiple files
+async function uploadFiles(map, token) {
+  const body = new FormData();
+  for (const [path, value] of map.entries()) {
+    const buffer = pack(value);
+    const blob = new Blob([buffer]);
+    body.append(path, blob, path);
+  }
+
+  const response = await fetchWithBackoff(`https://neocities.org/api/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Neocities upload failed: ${response.status} ${response.statusText}`,
+    );
+  }
 }
