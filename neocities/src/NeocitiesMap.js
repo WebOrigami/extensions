@@ -13,10 +13,8 @@ export default class NeocitiesMap extends AsyncMap {
   constructor(options, path = "") {
     super();
     this.token = options.token;
-    this._url = options.url;
+    this.url = options.url;
     this.path = path ? trailingSlash.add(path) : "";
-
-    this._files = null;
   }
 
   async assign(source) {
@@ -41,8 +39,6 @@ export default class NeocitiesMap extends AsyncMap {
     if (deletions.size > 0) {
       await deleteFiles(deletions, this.token);
     }
-
-    this._files = null; // Clear cached file list
   }
 
   async fileEntryForKey(key) {
@@ -64,8 +60,8 @@ export default class NeocitiesMap extends AsyncMap {
     let response;
     if (!isDirectory) {
       // Might be a file or a directory
-      this._url ??= await this.getSiteUrl();
-      const fileUrl = `${this._url}/${filePath}`;
+      this.url ??= await this.getSiteUrl();
+      const fileUrl = `${this.url}/${filePath}`;
 
       response = await fetchWithBackoff(fileUrl, {
         headers: {
@@ -96,7 +92,7 @@ export default class NeocitiesMap extends AsyncMap {
       value = Reflect.construct(this.constructor, [
         {
           token: this.token,
-          url: this._url,
+          url: this.url,
         },
         directoryPath,
       ]);
@@ -112,41 +108,6 @@ export default class NeocitiesMap extends AsyncMap {
     return value;
   }
 
-  async getFiles() {
-    if (!this._files) {
-      const pathArg = this.path ? encodeURIComponent(this.path) : "/";
-      const url = `https://neocities.org/api/list?path=${pathArg}`;
-      const response = await fetchWithBackoff(url, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
-      const data = await response.json();
-      let entries = data.files;
-
-      // When we ask for only the root contents, Neocities returns all files in
-      // the site. We have to filter this to just the files that start with this
-      // path.
-      if (this.path === "") {
-        entries = entries.filter((file) => !file.path.includes("/"));
-      }
-
-      // Convert from Neocities format to an object mapping key to hash (for
-      // files) or null (for directories)
-      const mapped = entries.map((file) => [
-        trailingSlash.toggle(
-          file.path.slice(this.path.length),
-          file.is_directory,
-        ),
-        file.is_directory ? null : file.sha1_hash,
-      ]);
-
-      this._files = Object.fromEntries(mapped);
-    }
-
-    return this._files;
-  }
-
   async getSiteUrl() {
     const response = await fetchWithBackoff(`https://neocities.org/api/info`, {
       headers: {
@@ -158,8 +119,32 @@ export default class NeocitiesMap extends AsyncMap {
   }
 
   async *keys() {
-    const files = await this.getFiles();
-    yield* Object.keys(files);
+    const pathArg = this.path ? encodeURIComponent(this.path) : "/";
+    const url = `https://neocities.org/api/list?path=${pathArg}`;
+    const response = await fetchWithBackoff(url, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+    const data = await response.json();
+    let entries = data.files;
+
+    // When we ask for only the root contents, Neocities returns all files in
+    // the site. We have to filter this to just the files that start with this
+    // path.
+    if (this.path === "") {
+      entries = entries.filter((file) => !file.path.includes("/"));
+    }
+
+    // Extract file names, add slash to directory names
+    const keys = entries.map((file) =>
+      trailingSlash.toggle(
+        file.path.slice(this.path.length),
+        file.is_directory,
+      ),
+    );
+
+    yield* keys;
   }
 
   async manifest() {
