@@ -17,32 +17,6 @@ export default class NeocitiesMap extends AsyncMap {
     this.path = path ? trailingSlash.add(path) : "";
   }
 
-  async assign(source) {
-    if (isUnpackable(source)) {
-      source = await source.unpack();
-    }
-    const tree = Tree.from(source, { deep: true });
-
-    const deflated = await Tree.deflatePaths(tree);
-    const uploadFilter = await Tree.filter(deflated, Boolean);
-    const uploads = await Tree.sync(uploadFilter);
-    const deleteFilter = await Tree.filter(
-      deflated,
-      (value) => value == undefined,
-    );
-    const deletions = await Tree.sync(deleteFilter);
-
-    if (uploads.size > 0) {
-      await uploadFiles(uploads, this.token);
-    }
-
-    if (deletions.size > 0) {
-      await deleteFiles(deletions, this.token);
-    }
-
-    return this;
-  }
-
   async fileEntryForKey(key) {
     const filePath = this.filePathForKey(key);
     const files = await this.getFiles();
@@ -173,6 +147,32 @@ export default class NeocitiesMap extends AsyncMap {
 
     const inflated = await Tree.inflatePaths(flat);
     return inflated;
+  }
+
+  async syncFrom(source) {
+    if (isUnpackable(source)) {
+      source = await source.unpack();
+    }
+    const tree = Tree.from(source, { deep: true });
+
+    const deflated = await Tree.deflatePaths(tree);
+    const uploadFilter = await Tree.filter(deflated, Boolean);
+    const uploads = await Tree.sync(uploadFilter);
+    const deleteFilter = await Tree.filter(
+      deflated,
+      (value) => value == undefined,
+    );
+    const deletions = await Tree.sync(deleteFilter);
+
+    if (uploads.size > 0) {
+      await uploadFiles(uploads, this.token);
+    }
+
+    if (deletions.size > 0) {
+      await deleteFiles(deletions, this.token);
+    }
+
+    return this;
   }
 
   trailingSlashKeys = true;
