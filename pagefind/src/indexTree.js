@@ -1,4 +1,4 @@
-import { keysFromPath, trailingSlash, Tree } from "@weborigami/async-tree";
+import { toString, trailingSlash, Tree } from "@weborigami/async-tree";
 import * as pagefind from "pagefind";
 
 const textDecoder = new TextDecoder();
@@ -17,11 +17,24 @@ const TypedArray = Object.getPrototypeOf(Uint8Array);
 export default async function indexTree(treelike, basePath = "", config = {}) {
   const { index } = await pagefind.createIndex(config);
 
-  // Add everything in the input tree to the index.
+  // Add everything in the input tree to the index
   await addTreeToIndex(treelike, { index, basePath });
 
-  // Return the index files as a plain object.
-  return indexToObject(index);
+  // Get the index files and convert a map of path->content
+  const { files } = await index.getFiles();
+  const map = new Map();
+  for (const file in files) {
+    const { path, content } = files[file];
+    map.set(path, content);
+  }
+
+  // Pagefind returns the files in a non-deterministic order that can vary
+  // between runs. To provide a stable order, we sort by paths.
+  const sorted = await Tree.sort(map);
+
+  // Inflate from paths to a full tree
+  const inflated = await Tree.inflatePaths(sorted);
+  return inflated;
 }
 
 // Add a single value to a nested object based on an array of keys.
@@ -64,27 +77,5 @@ async function addTreeToIndex(treelike, options) {
         );
       }
     }
-  }
-}
-
-// Return the complete set of index files as a plain object.
-async function indexToObject(index) {
-  const result = {};
-  const { files } = await index.getFiles();
-  for (const file in files) {
-    const { path, content } = files[file];
-    const keys = keysFromPath(path);
-    addValueToObject(result, keys, content);
-  }
-  return result;
-}
-
-// Cast a possible ArrayBuffer, Buffer, or other TypedArray to a string.
-function toString(value) {
-  if (value instanceof ArrayBuffer || value instanceof TypedArray) {
-    // Treat the buffer as UTF-8 text.
-    return textDecoder.decode(value);
-  } else {
-    return String(value);
   }
 }
