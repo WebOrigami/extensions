@@ -1,7 +1,6 @@
-import { isUnpackable, Tree } from "@weborigami/async-tree";
+import { isUnpackable, pack, Tree } from "@weborigami/async-tree";
 import { fetchWithBackoff } from "@weborigami/origami";
 import mapLimit from "./mapLimit.js";
-import toBuffer from "./toBuffer.js";
 
 /**
  * Publish the given maplike to the indicated Netlify site.
@@ -136,7 +135,12 @@ async function getNetlifyProjectId(name, token) {
 // Upload the file at the given path to Netlify
 async function uploadFile(site, path, deployUrl, token) {
   const value = await Tree.traversePath(site, path);
-  const body = toBuffer(value, path);
+  let body;
+  try {
+    body = pack(value);
+  } catch (err) {
+    throw new Error(`Can't convert to buffer: ${path}`);
+  }
   const uploadUrl = `${deployUrl}/${encodePath(path)}`;
   const uploadResponse = await fetchWithBackoff(uploadUrl, {
     method: "PUT",

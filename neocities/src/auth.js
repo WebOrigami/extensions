@@ -7,7 +7,7 @@ import NeocitiesMap from "./NeocitiesMap.js";
  *
  * @param {{ token: string|Uint8Array, url?: string }} options
  * @param {*} state
- * @returns
+ * @returns {Promise<NeocitiesMap>}
  */
 export default async function auth(options, state) {
   let { token, url } = options;
