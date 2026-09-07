@@ -1,7 +1,6 @@
 import { isUnpackable, Tree } from "@weborigami/async-tree";
 import { fetchWithBackoff } from "@weborigami/origami";
 import mapLimit from "./mapLimit.js";
-import pathHashes from "./pathHashes.js";
 import toBuffer from "./toBuffer.js";
 
 /**
@@ -52,7 +51,9 @@ export default async function publish(maplike, options) {
 
   netlifyProjectId ??= await getNetlifyProjectId(netlifyProjectName, token);
 
-  const files = await pathHashes(maplike);
+  const manifest = await Tree.manifest(maplike);
+  const deflated = await Tree.deflatePaths(manifest, { base: "/" });
+  const files = await Tree.plain(deflated);
   const body = JSON.stringify({ files });
   const response = await fetch(
     `https://api.netlify.com/api/v1/sites/${netlifyProjectId}/deploys`,
