@@ -43,6 +43,62 @@ export default class NeocitiesMap extends AsyncMap {
     return this;
   }
 
+  /**
+   * Return the child node for the given key, creating it if necessary.
+   */
+  async child(key) {
+    // We remove the trailing slash before the get() call because otherwise it
+    // would immediately return a NeocitiesMap without actually checking to see
+    // if it exists.
+    const normalized = trailingSlash.remove(key);
+    let result = await this.get(normalized);
+
+    if (result instanceof NeocitiesMap) {
+      // Directory exists
+      return result;
+    } else if (result !== undefined) {
+      // File exists with same name, delete it
+      await this.delete(key);
+    }
+
+    // Create a new directory
+    const pathArg = this.filePathForKey(normalized);
+    const url = `https://neocities.org/api/create_directory`;
+    const response = await fetchWithBackoff(url, {
+      body: new URLSearchParams({ path: pathArg }),
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+      method: "POST",
+    });
+
+    // If we get 400 Bad Request, it likely means the directory already exists
+    // but is empty. This happens because get() cannot detect empty directories
+    // without a trailing slash.
+    if (!response.ok && response.status !== 400) {
+      throw new Error(
+        `Failed to create directory ${pathArg}: ${response.statusText}`,
+      );
+    }
+
+    result = Reflect.construct(this.constructor, [
+      {
+        token: this.token,
+        url: this.url,
+      },
+      pathArg,
+    ]);
+    result.parent = this;
+    return result;
+  }
+
+  async delete(key) {
+    const filePath = this.filePathForKey(key);
+    const deletions = new Map([[filePath, undefined]]);
+    await deleteFiles(deletions, this.token);
+    return this;
+  }
+
   async fileEntryForKey(key) {
     const filePath = this.filePathForKey(key);
     const files = await this.getFiles();
@@ -72,6 +128,10 @@ export default class NeocitiesMap extends AsyncMap {
         redirect: "manual", // so we can detect redirects
       });
 
+      // Did we get redirected to a directory? Note: Neocities does *not*
+      // redirect an empty directory. This means get() cannot return a property
+      // response for an empty subdirectory unless a trailing slash is included
+      // in the key.
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get("location");
         if (location.endsWith("/")) {
@@ -173,6 +233,11 @@ export default class NeocitiesMap extends AsyncMap {
 
     const inflated = await Tree.inflatePaths(flat);
     return inflated;
+  }
+
+  async set(key, value) {
+    const map = new SyncMap([[key, value]]);
+    await uploadFiles(map, this.token);
   }
 
   trailingSlashKeys = true;
