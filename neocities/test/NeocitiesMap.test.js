@@ -42,14 +42,14 @@ describe("NeocitiesMap", () => {
     assert(keys.includes("styles.css"));
   });
 
-  test("assign method can upload and delete files", async () => {
+  test("apply method can upload and delete files", async () => {
     const source1 = {
       "test.txt": "This is a test file.",
       subdir: {
         "nested.txt": "This is a nested file.",
       },
     };
-    await root.assign(source1);
+    await root.apply(source1);
 
     const keys1 = await Tree.keys(root);
     assert(keys1.includes("test.txt"));
@@ -59,7 +59,7 @@ describe("NeocitiesMap", () => {
       "test.txt": undefined, // Delete this file
       subdir: undefined, // Delete this directory
     };
-    await root.assign(source2);
+    await root.apply(source2);
 
     const keys2 = await Tree.keys(root);
     assert(!keys2.includes("test.txt"));
