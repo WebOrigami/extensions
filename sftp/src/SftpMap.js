@@ -15,7 +15,7 @@ export default class SftpMap extends AsyncMap {
     super();
 
     this.client = options.client;
-    this.path = trailingSlash.add(options.path);
+    this.path = options.path ? trailingSlash.add(options.path) : "";
   }
 
   async child(key) {

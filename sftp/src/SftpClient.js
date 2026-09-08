@@ -110,7 +110,7 @@ export default class SftpClient {
     try {
       return await new Promise((resolve, reject) => {
         // Prepend a cd command so it runs in the appropriate directory
-        const fullCommand = `cd ${path}; ${command}`;
+        const fullCommand = `cd ${path}\n${command}`;
         this.client.exec(fullCommand, (error, stream) => {
           if (error) {
             reject(error);
@@ -121,7 +121,9 @@ export default class SftpClient {
             chunks.push(chunk);
           });
           stream.on("close", () => {
-            resolve(Buffer.concat(chunks));
+            const buffer = Buffer.concat(chunks);
+            const text = new TextDecoder().decode(buffer);
+            resolve(text);
           });
         });
       });
