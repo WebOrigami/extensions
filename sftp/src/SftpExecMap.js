@@ -1,22 +1,51 @@
-import { Tree } from "@weborigami/async-tree";
+import { setParent, Tree } from "@weborigami/async-tree";
 import fs from "node:fs/promises";
 import SftpMap from "./SftpMap.js";
 
-// Read the script used for generating the manifest. This is always executed
-// inline via `exec` (never invoked as a named script file), so it must avoid
-// `#` comments and bash-only syntax: some remote shells (e.g. tcsh on pair.com)
-// only treat `#` as a comment when running a named script file, and stray
-// `(`/`)` inside would-be comment text can corrupt the whole command.
-// Additionally, manifest.sh should be a single line to avoid parsing issues
-// when executed by tcsh.
+// Read the script used for generating the manifest. See command notes below.
 const manifestShPath = new URL("./manifest.sh", import.meta.url);
 const manifestShBufer = await fs.readFile(manifestShPath);
 const manifestSh = new TextDecoder().decode(manifestShBufer);
 
 /**
  * Map driver for an SFTP server that supports command execution
+ *
+ * The base SftpMap class relies strictly on SFTP, but that's not efficient for
+ * some operations. This class is used if the user has the ability to execute
+ * commands on the remote server.
+ *
+ * The commands executed are somewhat constrained by the need to be compatible
+ * with various remote shells. This includes:
+ *
+ * - avoiding comments
+ * - keeping commands on a single line
+ * - avoiding shell-specific syntax that may not be supported on all remote
+ *   servers.
  */
 export default class SftpExecMap extends SftpMap {
+  // Takes advantage of executing commands on the remote SFTP server to create
+  // child directories more efficiently than the base SftpClient can.
+  async child(key) {
+    const valuePath = this.pathForKey(key);
+
+    // Command needs to
+    // - delete any existing file (not directory) with the given path
+    // - create the directory if it doesn't exist
+    // Also see command notes above.
+    const command = `test -f "${valuePath}" && rm "${valuePath}"; mkdir -p "${valuePath}"`;
+    await this.client.exec(command);
+
+    // Return an SftpMap for the new directory
+    const child = Reflect.construct(this.constructor, [
+      {
+        client: this.client,
+        path: valuePath,
+      },
+    ]);
+    setParent(child, this);
+    return child;
+  }
+
   async manifest() {
     const listing = await this.client.exec(manifestSh, this.path);
 

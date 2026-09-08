@@ -8,6 +8,7 @@ const parent = new FileMap(parentUrl);
 
 // Traverse to the fixture directory in the SFTP server
 const fixturePath = new URL("fixture", import.meta.url).pathname;
+const fixtureFiles = new FileMap(fixturePath);
 const fixture = await auth(
   {
     exec: true,
@@ -18,6 +19,21 @@ const fixture = await auth(
 );
 
 describe("SftpExecMap", () => {
+  test("child calls mkdir", async () => {
+    const child = await fixture.child("newdir");
+    assert.equal(child.path, fixture.path + "newdir/");
+    assert(await fixtureFiles.get("newdir/"));
+    await fixtureFiles.delete("newdir/");
+  });
+
+  test("child removes preexisting file before calling mkdir", async () => {
+    await fixtureFiles.set("newdir", "some content");
+    const child = await fixture.child("newdir");
+    assert.equal(child.path, fixture.path + "newdir/");
+    assert(await fixtureFiles.get("newdir/"));
+    await fixtureFiles.delete("newdir/");
+  });
+
   test("manifest", async () => {
     const manifest = await fixture.manifest();
     const greetingsHash = manifest.get("greetings.yaml");
