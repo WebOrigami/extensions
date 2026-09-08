@@ -46,6 +46,18 @@ export default class SftpExecMap extends SftpMap {
     return child;
   }
 
+  async delete(key) {
+    const valuePath = this.pathForKey(key);
+
+    // Command needs to
+    // - delete the file or directory if it exists
+    // - signal whether the deletion was successful (i.e., file/directory existed)
+    // Also see command notes above.
+    const command = `test -e "${valuePath}" && (rm -rf "${valuePath}"; echo true) || echo false`;
+    const result = await this.client.exec(command);
+    return result.trim() === "true";
+  }
+
   async manifest() {
     const listing = await this.client.exec(manifestSh, this.path);
 

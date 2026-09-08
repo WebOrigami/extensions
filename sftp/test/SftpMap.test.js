@@ -68,29 +68,39 @@ describe("SftpMap", () => {
     await fixtureFiles.delete("temp.txt");
   });
 
-  test("can delete a file", async () => {
-    // Create the file directly
-    await fixtureFiles.set("temp.txt", "Hello, Origami!");
+  describe("delete", () => {
+    test("delete a file", async () => {
+      // Create the file directly
+      await fixtureFiles.set("temp.txt", "Hello, Origami!");
 
-    await fixture.delete("temp.txt");
-    const value = await fixture.get("temp.txt");
-    assert.equal(value, undefined);
-  });
+      const result = await fixture.delete("temp.txt");
+      assert(result);
+      const value = await fixture.get("temp.txt");
+      assert.equal(value, undefined);
+    });
 
-  test("can delete a directory with trailing slash", async () => {
-    // Create the directory directly
-    await fixtureFiles.child("temp");
-    await fixture.delete("temp/");
-    const value = await fixtureFiles.get("temp");
-    assert.equal(value, undefined);
-  });
+    test("delete a directory with trailing slash", async () => {
+      // Create the directory directly
+      await fixtureFiles.child("temp");
+      const result = await fixture.delete("temp/");
+      assert(result);
+      const value = await fixtureFiles.get("temp");
+      assert.equal(value, undefined);
+    });
 
-  test("can delete a directory without trailing slash", async () => {
-    // Create the directory directly
-    await fixtureFiles.child("temp");
-    await fixture.delete("temp");
-    const value = await fixtureFiles.get("temp");
-    assert.equal(value, undefined);
+    test("delete a directory without trailing slash", async () => {
+      // Create the directory directly
+      await fixtureFiles.child("temp");
+      const result = await fixture.delete("temp");
+      assert(result);
+      const value = await fixtureFiles.get("temp");
+      assert.equal(value, undefined);
+    });
+
+    test("delete non-existent file returns false", async () => {
+      const result = await fixture.delete("nonexistent.txt");
+      assert.equal(result, false);
+    });
   });
 
   test("can create a child map", async () => {

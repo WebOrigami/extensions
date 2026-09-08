@@ -151,10 +151,6 @@ export default class SftpClient {
     }
   }
 
-  async readdir(path) {
-    return this.callSftp("readdir", path);
-  }
-
   async mkdir(path) {
     const parts = path.split("/").filter(Boolean);
     let current = path.startsWith("/") ? "/" : "";
@@ -186,6 +182,10 @@ export default class SftpClient {
     } finally {
       this.scheduleDisconnect();
     }
+  }
+
+  async readdir(path) {
+    return this.callSftp("readdir", path);
   }
 
   async rmdir(path) {

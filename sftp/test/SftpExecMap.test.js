@@ -34,6 +34,41 @@ describe("SftpExecMap", () => {
     await fixtureFiles.delete("newdir/");
   });
 
+  describe("delete", () => {
+    test("delete a file", async () => {
+      // Create the file directly
+      await fixtureFiles.set("temp.txt", "Hello, Origami!");
+
+      const result = await fixture.delete("temp.txt");
+      assert(result);
+      const value = await fixture.get("temp.txt");
+      assert.equal(value, undefined);
+    });
+
+    test("delete a directory with trailing slash", async () => {
+      // Create the directory directly
+      await fixtureFiles.child("temp");
+      const result = await fixture.delete("temp/");
+      assert(result);
+      const value = await fixtureFiles.get("temp");
+      assert.equal(value, undefined);
+    });
+
+    test("delete a directory without trailing slash", async () => {
+      // Create the directory directly
+      await fixtureFiles.child("temp");
+      const result = await fixture.delete("temp");
+      assert(result);
+      const value = await fixtureFiles.get("temp");
+      assert.equal(value, undefined);
+    });
+
+    test("delete non-existent file returns false", async () => {
+      const result = await fixture.delete("nonexistent.txt");
+      assert.equal(result, false);
+    });
+  });
+
   test("manifest", async () => {
     const manifest = await fixture.manifest();
     const greetingsHash = manifest.get("greetings.yaml");
