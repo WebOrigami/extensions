@@ -25,6 +25,9 @@ export default async function sftp(options = {}, state = {}) {
     username,
   });
 
+  const result = await client.exec(`ls -l`, path);
+  return result;
+
   const tree = new (HandleExtensionsTransform(SftpMap))({
     client,
     path,

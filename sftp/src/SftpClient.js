@@ -105,6 +105,31 @@ export default class SftpClient {
     return this.connectionPromise;
   }
 
+  async exec(command, path) {
+    await this.connect();
+    try {
+      return await new Promise((resolve, reject) => {
+        // Prepend a cd command so it runs in the appropriate directory
+        const fullCommand = `cd ${path}; ${command}`;
+        this.client.exec(fullCommand, (error, stream) => {
+          if (error) {
+            reject(error);
+          }
+
+          const chunks = [];
+          stream.on("data", (chunk) => {
+            chunks.push(chunk);
+          });
+          stream.on("close", () => {
+            resolve(Buffer.concat(chunks));
+          });
+        });
+      });
+    } finally {
+      this.scheduleDisconnect();
+    }
+  }
+
   async get(path) {
     await this.connect();
     try {
