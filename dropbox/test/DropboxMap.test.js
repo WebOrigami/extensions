@@ -1,7 +1,7 @@
 import { FileMap, toString, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { before, describe, test } from "node:test";
-import connect from "../src/connect.js";
+import dropbox from "../src/dropbox.js";
 import DropboxMap from "../src/DropboxMap.js";
 
 describe("DropboxMap", () => {
@@ -12,7 +12,31 @@ describe("DropboxMap", () => {
     const parent = new FileMap(projectUrl);
     const credsBuffer = await parent.get("creds.json");
     const creds = JSON.parse(toString(credsBuffer));
-    fixture = await connect(creds, { parent });
+    fixture = await dropbox(creds, { parent });
+  });
+
+  test("apply", async () => {
+    // Create a temp text file we can delete
+    await fixture.set("temp.txt", "This file was created by a unit test.");
+
+    // Apply updates to the fixture
+    const updates = {
+      assets: {
+        "temp.css": "/* This file was created by a unit test. */",
+      },
+      "temp.txt": undefined, // Mark temp.txt for deletion
+    };
+    await fixture.apply(updates);
+
+    // Check updates
+    const assets = await fixture.get("assets/");
+    const tempCss = await assets.get("temp.css");
+    assert.equal(toString(tempCss), updates.assets["temp.css"]);
+    const tempTxt = await fixture.get("temp.txt");
+    assert.equal(tempTxt, undefined);
+
+    // Remove remaining temp file
+    await assets.delete("temp.css");
   });
 
   describe("child", () => {
