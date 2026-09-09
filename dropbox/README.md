@@ -10,7 +10,7 @@ As of June 2024, the process to obtain a key is roughly:
 2. Click "Create apps".
 3. Fill out the fields to create a new app. As of June 2024, there is only one API choice; "Scoped access". For "type of access you need", select "Full dropbox". Give your app a name. Then click "Create app".
 4. Dropbox will show the settings page for your new app. Click the Permissions tab.
-5. Check the boxes for `files.metadata.read` and `files.content.read`, then click Submit to save your changes.
+5. Check the boxes for `files.metadata.read` and `files.content.read`. If you want to be able to write files to Dropbox, also check `files.content.write`. Then click Submit to save your changes.
 6. Return to the Settings tab.
 7. In your code editor, create a new file called `creds.json`, which will store the information you need to connect to Dropbox. In the file, paste:
 

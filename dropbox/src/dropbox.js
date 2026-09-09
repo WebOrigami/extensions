@@ -11,7 +11,7 @@ import DropboxMap from "./DropboxMap.js";
  * @param {any} state
  * @returns {DropboxMap}
  */
-export default async function connect(options, state) {
+export default async function dropbox(options, state) {
   if (!options) {
     throw new ReferenceError("Missing Dropbox credentials");
   }
@@ -30,7 +30,7 @@ export default async function connect(options, state) {
 
   return tree;
 }
-connect.needsState = true;
+dropbox.needsState = true;
 
 /**
  * Given Dropbox credentials, get an access token.

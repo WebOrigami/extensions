@@ -9,7 +9,7 @@ import NetlifyMap from "./NetlifyMap.js";
  * @param {*} state
  * @returns {Promise<NetlifyMap>}
  */
-export default async function auth(options, state) {
+export default async function netlify(options, state) {
   let { projectId, projectName, token } = options;
 
   if (typeof projectId !== "string" || projectId.length === 0) {
@@ -38,4 +38,4 @@ export default async function auth(options, state) {
 
   return tree;
 }
-auth.needsState = true;
+netlify.needsState = true;

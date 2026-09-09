@@ -5,6 +5,7 @@ import {
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
+import { symbols } from "@weborigami/language";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 /**
@@ -200,6 +201,8 @@ export default class DropboxMap extends AsyncMap {
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
     const path = `${this.path}${key}`;

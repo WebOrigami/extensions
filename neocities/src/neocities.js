@@ -9,7 +9,7 @@ import NeocitiesMap from "./NeocitiesMap.js";
  * @param {*} state
  * @returns {Promise<NeocitiesMap>}
  */
-export default async function auth(options, state) {
+export default async function neocities(options, state) {
   let { token, url } = options;
 
   if (isUnpackable(token)) {
@@ -32,4 +32,4 @@ export default async function auth(options, state) {
 
   return tree;
 }
-auth.needsState = true;
+neocities.needsState = true;
