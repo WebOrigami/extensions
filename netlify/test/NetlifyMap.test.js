@@ -2,13 +2,13 @@ import { Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import fs from "node:fs/promises";
 import { describe, test } from "node:test";
-import auth from "../src/auth.js";
+import netlify from "../src/netlify.js";
 
 const tokenPath = new URL("../token.txt", import.meta.url);
 const tokenBuffer = await fs.readFile(tokenPath);
 const token = new TextDecoder().decode(tokenBuffer).trim();
 
-const fixture = await auth({
+const fixture = await netlify({
   projectId: "59bca707-6a99-44b0-827d-024ba7d2ec73",
   projectName: "origami-netlify-test",
   token,

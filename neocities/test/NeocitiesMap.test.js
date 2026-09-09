@@ -2,7 +2,7 @@ import { FileMap, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { promises as fs } from "node:fs";
 import { describe, test } from "node:test";
-import connect from "../src/connect.js";
+import neocities from "../src/neocities.js";
 import NeocitiesMap from "../src/NeocitiesMap.js";
 
 const parentUrl = new URL("..", import.meta.url);
@@ -10,7 +10,7 @@ const parent = new FileMap(parentUrl);
 const tokenPath = new URL("../token.txt", import.meta.url);
 const tokenBuffer = await fs.readFile(tokenPath);
 const token = new TextDecoder().decode(tokenBuffer).trim();
-const fixture = await connect({ token }, { parent });
+const fixture = await neocities({ token }, { parent });
 
 describe("NeocitiesMap", () => {
   test("apply method can upload and delete files", async () => {

@@ -17,6 +17,10 @@ export default class NeocitiesMap extends AsyncMap {
     this.path = path ? trailingSlash.add(path) : "";
   }
 
+  /**
+   * Bulk update the contents of this Neocities site with everything in
+   * the given source tree.
+   */
   async apply(source) {
     if (isUnpackable(source)) {
       source = await source.unpack();
