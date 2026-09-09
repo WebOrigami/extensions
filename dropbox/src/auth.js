@@ -8,12 +8,21 @@ const accessTokenMap = new Map();
 // Dictionary of access token to DropboxTree.
 const treeMap = {};
 
-export default async function auth(credentialsTreelike, state) {
-  if (!credentialsTreelike) {
+/**
+ * Authenticate with Dropbox using the provided credentials and return a
+ * DropboxMap for the account's root folder.
+ *
+ * @param {{ app_key: string, app_secret: string, refresh_token: string }}
+ * options
+ * @param {any} state
+ * @returns {DropboxMap}
+ */
+export default async function auth(options, state) {
+  if (!options) {
     throw new ReferenceError("Missing Dropbox credentials");
   }
 
-  const credentials = await Tree.plain(credentialsTreelike);
+  const credentials = await Tree.plain(options);
 
   let accessToken = accessTokenMap.get(credentials.app_secret);
   if (!accessToken) {

@@ -44,8 +44,9 @@ describe("DropboxMap", () => {
     );
   });
 
-  test("can traverse into a file that has a handler", async () => {
-    const value = await Tree.traverse(fixture, "teamData.yaml/", "0/", "name");
+  test("returned files can be unpacked", async () => {
+    const buffer = await fixture.get("teamData.yaml");
+    const value = await Tree.traverse(buffer, "0/", "name");
     assert.equal(value, "Alice");
   });
 });

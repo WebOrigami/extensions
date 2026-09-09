@@ -125,6 +125,12 @@ describe("NeocitiesMap", () => {
     });
   });
 
+  test("manifest", async () => {
+    const manifest = await root.manifest();
+    assert(manifest);
+    assert(manifest.has("index.html"));
+  });
+
   describe("set", () => {
     test("set method can create a new file", async () => {
       await root.set("newfile.txt", "This is a new file.");

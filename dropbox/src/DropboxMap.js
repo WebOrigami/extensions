@@ -38,9 +38,9 @@ export default class DropboxMap extends AsyncMap {
       );
     }
 
-    // A key with a trailing slash and no extension is for a folder; return a
-    // subtree without making a network request.
-    if (trailingSlash.has(key) && !key.includes(".")) {
+    // A key with a trailing slash is for a folder; return a subtree without
+    // making a network request.
+    if (trailingSlash.has(key)) {
       const subtree = Reflect.construct(this.constructor, [
         this.accessToken,
         this.path + key,
@@ -50,16 +50,6 @@ export default class DropboxMap extends AsyncMap {
     }
 
     const normalizedKey = trailingSlash.remove(key);
-
-    // HACK: For now we don't allow lookup of Origami extension handlers.
-    if (normalizedKey.endsWith("_handler")) {
-      return undefined;
-    }
-
-    if (normalizedKey === ".folder.zip") {
-      // Return a buffer for a ZIP archive of the entire folder.
-      return await this.getFolderZipArchive();
-    }
 
     const items = await this.getItems();
     let item = items[normalizedKey];
@@ -103,27 +93,6 @@ export default class DropboxMap extends AsyncMap {
     const value = response.arrayBuffer();
     setParent(value, this);
     return value;
-  }
-
-  async getFolderZipArchive() {
-    const path = this.path;
-    const response = await fetchWithBackoff(
-      "https://content.dropboxapi.com/2/files/download_zip",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-          "Dropbox-API-Arg": JSON.stringify({ path }),
-        },
-      },
-    );
-    if (!response.ok) {
-      throw new Error(
-        `Dropbox API reported an error: ${response.status}: ${response.statusText}`,
-      );
-    }
-
-    return response.arrayBuffer();
   }
 
   async getItems() {
