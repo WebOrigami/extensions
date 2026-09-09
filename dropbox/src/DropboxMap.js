@@ -1,6 +1,7 @@
 import {
   AsyncMap,
   naturalOrder,
+  pack,
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
@@ -28,6 +29,95 @@ export default class DropboxMap extends AsyncMap {
     }
     this.path = path;
     this.itemsPromise = null;
+  }
+
+  /**
+   * Return the child folder for the given key, creating it if necessary.
+   * - If the child folder exists, return as DropboxMap for it.
+   * - If the child folder doesn't exist, create it and return as DropboxMap.
+   */
+  async child(key) {
+    const normalizedKey = trailingSlash.remove(key);
+    const path = `${this.path}${normalizedKey}`;
+
+    const items = await this.getItems();
+    const item =
+      items[normalizedKey] ?? items[trailingSlash.toggle(normalizedKey)];
+
+    let createFolder = true;
+    if (item?.tag === "folder") {
+      createFolder = false; // Already exists
+    } else if (item?.tag === "file") {
+      // Delete existing file with same name
+      await this.delete(normalizedKey);
+    }
+
+    if (createFolder) {
+      const response = await fetchWithBackoff(
+        "https://api.dropboxapi.com/2/files/create_folder_v2",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ path }),
+        },
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        const message =
+          data.user_message?.text ?? data.error_summary ?? response.statusText;
+        throw new Error(`Dropbox error: ${response.status}: ${message}`);
+      }
+
+      // Invalidate cached items since they've changed
+      this.itemsPromise = null;
+    }
+
+    const subtree = Reflect.construct(this.constructor, [
+      this.accessToken,
+      path,
+    ]);
+    setParent(subtree, this);
+    return subtree;
+  }
+
+  async delete(key) {
+    // We use a trailing slash on our folder paths, but Dropbox doesn't want
+    // them in a delete call.
+    const normalized = trailingSlash.remove(key);
+    const path = `${this.path}${normalized}`;
+    const response = await fetchWithBackoff(
+      "https://api.dropboxapi.com/2/files/delete_v2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ path }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      if (
+        error.error?.[".tag"] === "path_lookup" &&
+        error.error.path_lookup?.[".tag"] === "not_found"
+      ) {
+        // File/folder doesn't exist
+        return false;
+      }
+      throw new Error(error.error_summary);
+    }
+
+    // Invalidate cached items since they've changed
+    this.itemsPromise = null;
+
+    // Successfully deleted
+    return true;
   }
 
   async get(key) {
@@ -111,7 +201,35 @@ export default class DropboxMap extends AsyncMap {
     yield* keys;
   }
 
-  async set(key, value) {}
+  async set(key, value) {
+    const path = `${this.path}${key}`;
+    const packed = pack(value);
+    const response = await fetchWithBackoff(
+      "https://content.dropboxapi.com/2/files/upload",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Content-Type": "application/octet-stream",
+          "Dropbox-API-Arg": JSON.stringify({
+            path,
+            mode: "overwrite",
+          }),
+        },
+        body: packed,
+      },
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      const message =
+        data.user_message?.text ?? data.error_summary ?? response.statusText;
+      throw new Error(`Dropbox error: ${response.status}: ${message}`);
+    }
+
+    // Invalidate cached items since they've changed
+    this.itemsPromise = null;
+  }
 
   trailingSlashKeys = true;
 }
@@ -144,7 +262,7 @@ async function getFolderItems(accessToken, path) {
 
     if (!response.ok) {
       throw new Error(
-        `Dropbox API reported an error: ${response.status}: ${response.statusText}`,
+        `Dropbox error: ${response.status}: ${response.statusText}`,
       );
     }
 

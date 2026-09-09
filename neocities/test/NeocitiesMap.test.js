@@ -73,7 +73,8 @@ describe("NeocitiesMap", () => {
       await fixture.apply({
         "test.txt": "This is a test file.",
       });
-      await fixture.delete("test.txt");
+      const deleted = await fixture.delete("test.txt");
+      assert(deleted);
       const keys = await Tree.keys(fixture);
       assert(!keys.includes("test.txt"));
     });
@@ -84,7 +85,8 @@ describe("NeocitiesMap", () => {
           "nested.txt": "This is a nested file.",
         },
       });
-      await fixture.delete("subdir/");
+      const deleted = await fixture.delete("subdir/");
+      assert(deleted);
       const keys = await Tree.keys(fixture);
       assert(!keys.includes("subdir/"));
     });
