@@ -110,6 +110,10 @@ export default class DropboxMap extends AsyncMap {
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  async set(key, value) {}
+
+  trailingSlashKeys = true;
 }
 
 // Get items in a folder via the Dropbox API.

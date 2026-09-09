@@ -109,6 +109,11 @@ describe("NeocitiesMap", () => {
       const keys = await Tree.keys(assets);
       assert(keys.includes("styles.css"));
     });
+
+    test("get non-existent key", async () => {
+      const result = await fixture.get("nonexistent.txt");
+      assert.equal(result, undefined);
+    });
   });
 
   describe("keys", () => {
