@@ -2,12 +2,6 @@ import { Tree } from "@weborigami/async-tree";
 import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import DropboxMap from "./DropboxMap.js";
 
-// Map of app secret to access token.
-const accessTokenMap = new Map();
-
-// Dictionary of access token to DropboxTree.
-const treeMap = {};
-
 /**
  * Authenticate with Dropbox using the provided credentials and return a
  * DropboxMap for the account's root folder.
@@ -17,43 +11,33 @@ const treeMap = {};
  * @param {any} state
  * @returns {DropboxMap}
  */
-export default async function auth(options, state) {
+export default async function connect(options, state) {
   if (!options) {
     throw new ReferenceError("Missing Dropbox credentials");
   }
 
-  const credentials = await Tree.plain(options);
-
-  let accessToken = accessTokenMap.get(credentials.app_secret);
-  if (!accessToken) {
-    accessToken = await getAccessToken(credentials);
-    accessTokenMap.set(credentials.app_secret, accessToken);
+  options = await Tree.plain(options);
+  const { app_key, app_secret, path, refresh_token } = options;
+  if (!app_key || !app_secret || !refresh_token) {
+    throw new Error("Missing Dropbox credentials");
   }
 
-  let tree = treeMap[accessToken];
-  if (!tree) {
-    tree = new (HandleExtensionsTransform(DropboxMap))(accessToken);
+  const accessToken = await getAccessToken(app_key, app_secret, refresh_token);
+  const tree = new (HandleExtensionsTransform(DropboxMap))(accessToken, path);
 
-    // Set globals for extension handlers
-    tree.globals = state?.globals || (await coreGlobals());
-
-    treeMap[accessToken] = tree;
-  }
+  // Set globals for extension handlers
+  tree.globals = state?.globals || (await coreGlobals());
 
   return tree;
 }
-auth.needsState = true;
+connect.needsState = true;
 
 /**
  * Given Dropbox credentials, get an access token.
  *
  * @returns {Promise<string>} The access token
  */
-async function getAccessToken(credentials) {
-  const { app_key, app_secret, refresh_token } = credentials;
-  if (!app_key || !app_secret || !refresh_token) {
-    throw new Error("Missing Dropbox credentials");
-  }
+async function getAccessToken(app_key, app_secret, refresh_token) {
   const basicAuth = btoa(`${app_key}:${app_secret}`);
   let response;
   try {

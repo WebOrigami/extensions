@@ -1,7 +1,7 @@
 import { FileMap, toString, Tree } from "@weborigami/async-tree";
 import assert from "node:assert";
 import { before, describe, test } from "node:test";
-import auth from "../src/auth.js";
+import auth from "../src/connect.js";
 
 describe("DropboxMap", () => {
   let fixture;
@@ -15,7 +15,30 @@ describe("DropboxMap", () => {
     fixture = await tree.get("Test/");
   });
 
-  test("can get keys", async () => {
+  describe("get", () => {
+    test("get file", async () => {
+      const buffer = await fixture.get("teamData.yaml");
+      const text = toString(buffer);
+      assert(text.includes("Alice"));
+      // Can unpack value
+      const value = await Tree.traverse(buffer, "0/", "name");
+      assert.equal(value, "Alice");
+    });
+
+    test("get subtree for a key that ends in a slash", async () => {
+      const subtree = await fixture.get("images/");
+      assert(Tree.isMap(subtree));
+      assert.equal(subtree.path, "/Test/images/");
+    });
+
+    test("get subtree even if key doesn't end in slash", async () => {
+      const subtree = await fixture.get("images");
+      assert(Tree.isMap(subtree));
+      assert.equal(subtree.path, "/Test/images/");
+    });
+  });
+
+  test("keys", async () => {
     const keys = [];
     for await (const key of fixture.keys()) {
       keys.push(key);
@@ -23,30 +46,13 @@ describe("DropboxMap", () => {
     assert.deepEqual(keys, ["images/", "ReadMe.md", "teamData.yaml"]);
   });
 
-  test("returns a subtree for a key that ends in a slash", async () => {
-    const subtree = await fixture.get("images/");
-    assert(Tree.isMap(subtree));
-    assert.equal(subtree.path, "/Test/images/");
-  });
-
-  test("returns a subtree even if key doesn't end in slash", async () => {
-    const subtree = await fixture.get("images");
-    assert(Tree.isMap(subtree));
-    assert.equal(subtree.path, "/Test/images/");
-  });
-
-  test("can get a value", async () => {
-    const value = await fixture.get("ReadMe.md");
-    const text = toString(value);
-    assert.equal(
-      text,
-      "This folder is used to test the Origami Dropbox extension.\n",
-    );
-  });
-
-  test("returned files can be unpacked", async () => {
-    const buffer = await fixture.get("teamData.yaml");
-    const value = await Tree.traverse(buffer, "0/", "name");
-    assert.equal(value, "Alice");
+  describe("set", () => {
+    test.only("set method can create a new file", async () => {
+      await fixture.set("newfile.txt", "This is a new file.");
+      const buffer = await fixture.get("newfile.txt");
+      const text = new TextDecoder().decode(buffer);
+      assert.equal(text, "This is a new file.");
+      await fixture.delete("newfile.txt");
+    });
   });
 });
