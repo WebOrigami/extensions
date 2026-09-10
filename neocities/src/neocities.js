@@ -1,25 +1,21 @@
-import { isUnpackable } from "@weborigami/async-tree";
+import { args } from "@weborigami/async-tree";
 import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import NeocitiesMap from "./NeocitiesMap.js";
 
 /**
- * Return a NeocitiesMap for the given options.
+ * Return an AsyncMap for the files in a Neocities site.
  *
- * @param {{ token: string|Uint8Array, url?: string }} options
+ * @param {{ token: string|Uint8Array, url: string }} options
  * @param {*} state
  * @returns {Promise<NeocitiesMap>}
  */
 export default async function neocities(options, state) {
-  let { token, url } = options;
+  let { token, url } = await args.options(options, "Neocities", {
+    token: {},
+    url: { required: false },
+  });
 
-  if (isUnpackable(token)) {
-    token = await token.unpack();
-    token = token.trim();
-  }
-  if (typeof token !== "string" || token.length === 0) {
-    throw new ReferenceError("Neocities: token was not provided");
-  }
-
+  token = token.trim();
   if (url && !(url.startsWith("http://") || url.startsWith("https://"))) {
     url = `https://${url}`;
   }
@@ -27,8 +23,7 @@ export default async function neocities(options, state) {
   const tree = new (HandleExtensionsTransform(NeocitiesMap))({ token, url });
 
   // Set globals for extension handlers
-  const globals = state?.globals || (await coreGlobals());
-  tree.globals = globals;
+  tree.globals = state?.globals || (await coreGlobals());
 
   return tree;
 }

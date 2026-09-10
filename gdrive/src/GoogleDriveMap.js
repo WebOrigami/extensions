@@ -80,7 +80,7 @@ export default class GoogleDriveMap extends AsyncMap {
     if (key == null) {
       // Reject nullish key.
       throw new ReferenceError(
-        `${this.constructor.name}: Cannot get a null or undefined key.`
+        `${this.constructor.name}: Cannot get a null or undefined key.`,
       );
     }
 
@@ -139,8 +139,8 @@ export default class GoogleDriveMap extends AsyncMap {
     const keys = Array.from(items.entries()).map(([key, item]) =>
       trailingSlash.toggle(
         key,
-        item.mimeType === "application/vnd.google-apps.folder"
-      )
+        item.mimeType === "application/vnd.google-apps.folder",
+      ),
     );
     // Origami tree drivers generally use natural sort order. For reference,
     // Google Drive's own UI uses what seems to be natural sort order.
@@ -167,7 +167,7 @@ export default class GoogleDriveMap extends AsyncMap {
         this.service,
         this.folderId,
         normalized,
-        value
+        value,
       );
       const { id, mimeType } = data;
       this.items.set(normalized, { id, mimeType });
@@ -176,9 +176,7 @@ export default class GoogleDriveMap extends AsyncMap {
     return this;
   }
 
-  get trailingSlashKeys() {
-    return true;
-  }
+  trailingSlashKeys = true;
 }
 
 async function createFile(service, folderId, name, body) {

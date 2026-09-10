@@ -1,5 +1,0 @@
-package:@weborigami/netlify({
-  projectId: "59bca707-6a99-44b0-827d-024ba7d2ec73"
-  projectName: "origami-netlify-test"
-  token: token.txt
-})

@@ -1,26 +1,26 @@
-import { Tree } from "@weborigami/async-tree";
+import { args } from "@weborigami/async-tree";
 import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
 import DropboxMap from "./DropboxMap.js";
 
 /**
- * Authenticate with Dropbox using the provided credentials and return a
- * DropboxMap for the account's root folder.
+ * Return an AsyncMap for files on Dropbox.
  *
  * @param {{ app_key: string, app_secret: string, refresh_token: string }}
  * options
- * @param {any} state
- * @returns {DropboxMap}
+ * @param {*} state
+ * @returns {Promise<DropboxMap>}
  */
 export default async function dropbox(options, state) {
-  if (!options) {
-    throw new ReferenceError("Missing Dropbox credentials");
-  }
-
-  options = await Tree.plain(options);
-  const { app_key, app_secret, path, refresh_token } = options;
-  if (!app_key || !app_secret || !refresh_token) {
-    throw new Error("Missing Dropbox credentials");
-  }
+  const { app_key, app_secret, refresh_token, path } = await args.options(
+    options,
+    "Dropbox",
+    {
+      app_key: {},
+      app_secret: {},
+      refresh_token: {},
+      path: { required: false },
+    },
+  );
 
   const accessToken = await getAccessToken(app_key, app_secret, refresh_token);
   const tree = new (HandleExtensionsTransform(DropboxMap))(accessToken, path);
