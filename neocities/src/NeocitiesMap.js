@@ -242,6 +242,7 @@ export default class NeocitiesMap extends AsyncMap {
   async set(key, value) {
     const map = new SyncMap([[key, value]]);
     await uploadFiles(map, this.token);
+    return this;
   }
 
   trailingSlashKeys = true;

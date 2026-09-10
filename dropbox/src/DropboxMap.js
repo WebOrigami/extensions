@@ -268,6 +268,8 @@ export default class DropboxMap extends AsyncMap {
 
     // Invalidate cached items since they've changed
     this.itemsPromise = null;
+
+    return this;
   }
 
   trailingSlashKeys = true;
