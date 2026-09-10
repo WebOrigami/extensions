@@ -1,19 +1,15 @@
-This package provides a function that will upload anything (an Origami site, static files, files defined in a data object, etc.) directly to [Netlify](https://netlify.com).
+This package provides a function that will upload anything (an Origami site, static files, files defined in a data object, etc.) directly to [Netlify](https://netlify.com). You can represent your Netlify account as a [network host connection](https://weborigami.org/cli/network.html) so that you can read and write files directly to it.
 
 This can be faster and significantly less hassle than trying to link a Netlify project to a GitHub repository and get your project to build on one of Netlify's server. You can test your project on your local machine and, once you've got it the way you want, directly update your site on Netlify where it will be available a few seconds later.
 
-This is like the [Manual Deploy](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/#manual-deploys) feature of the Netlify CLI, which allows you to upload local files (a `build` folder, for example) directly to Netlify.
+This is like the [Manual Deploy](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/#manual-deploys) feature of the Netlify CLI, which allows you to upload local files (a `build` folder, for example) directly to Netlify. The primary difference here is that this package can upload virtual files defined in an Origami `.ori` file or by other means without requiring a separate build step (although you could also have a build step).
 
-The primary difference here is that this package can upload virtual files defined in an Origami `.ori` file or by other means without requiring a separate build step (although you could also have a build step).
+## Install the extension
 
-The instructions below assume you are uploading a site defined in `src/site.ori`.
-
-## Installing
-
-Add the `@weborigami/netlify` package as a dependency in your project's `package.json`, then
+In the command line, install the extension in your project with:
 
 ```console
-$ npm install
+$ npm install @weborigami/netlify
 ```
 
 ## Netlify setup
@@ -38,33 +34,6 @@ The easiest way to create a new Netlify project is to upload an initial set of f
 
 The rest of this process arranges things so that you can deploy further updates to your site.
 
-### Create a file to hold deployment options
-
-To deploy your site with Origami’s `netlify` package, you will need to pass it some configuration options. A convenient way to do that is to put those options in a file.
-
-1. Create a file called, for example, `publish.ori`.
-1. Paste in the following template text, substituting your project name (e.g., `alice-andrews-blog`) and Netlify project ID (e.g., `69cd69f789-a780-b327-89cb078afe8b`):
-
-```
-// Deploys https://<your project name here>.netlify.app
-() => package:@weborigami/netlify(src/site.ori, {
-  netlifyProjectId: "<your project ID here>"
-  token: token.txt
-})
-```
-
-If your site is defined in a file other than `src/site.ori`, update the `site` field to point to it. You’ll create `token.txt` in the next step.
-
-The final `publish.ori` file will look like this _example_:
-
-```
-// Deploys https://alice-andrews-blog.netlify.app
-() => package:@weborigami/netlify(src/site.ori, {
-  netlifyProjectId: "69cd69f789-a780-b327-89cb078afe8b"
-  token: token.txt
-})
-```
-
 ### Get a Netlify personal access token
 
 From Netlify you will need to obtain a “personal access token”: a little string of text that the `netlify` package will use to prove to Netlify that you’ve given it permission to update your site.
@@ -88,47 +57,68 @@ This arrangement gives you a local copy of this token and makes that token avail
 
 If you have more than one Netlify project, you can reuse your personal access token across multiple projects.
 
-## Create an npm command to publish your site
+### Create a file to represent your network host
 
-The final step is to add a `publish` script to your `package.json` that calls `publish.ori`.
+To publish your site with Origami’s `netlify` extension, you will need to pass it some configuration options. A convenient way to do that is to put those options in a file.
 
-Your package.json will look something like:
+1. Create a file called, for example, `netlify.ori`.
 
-```json
-{
-  "name": "alice-andrews-blog",
-  "version": "0.0.1",
-  "type": "module",
-  "dependencies": {
-    "@weborigami/origami": "0.7.1",
-    "@weborigami/netlify": "0.0.19"
-  },
-  "scripts": {
-    "publish": "ori publish.ori"
-  }
-}
+## Create a network connection file
+
+Once you have a Netlify token saved in `token.txt`, create a file called `netlify.ori` with the following:
+
+```
+package:@weborigami/netlify({
+  projectId: "<your project ID here>"
+  projectName: "<your project name here>"
+  token: token.txt
+})
 ```
 
-For the `@weborigami/origami` and `@weborigami/netlify` version numbers, use the latest versions of those projects.
+Update these with your project's Netlify ID (e.g., `69cd69f789-a780-b327-89cb078afe8b`) and project name (e.g., `alice-andrews-blog`). The `netlify.ori` file will end up looking like this _example_:
 
-Install the dependencies with
+```
+package:@weborigami/netlify({
+  projectId: "69cd69f789-a780-b327-89cb078afe8b"
+  projectName: "alice-andrews-blog"
+  token: token.txt
+})
+```
+
+## Test your connection
+
+After creating the `netlify.ori` file to represent your Netlify project, you can test it by using [`Tree.keys`](https://weborigami.org/builtins/tree/keys.html) to list out the top level files and subfolders:
 
 ```console
-$ npm install
+$ ori keys netlify.ori
+assets/
+posts/
+feed.json
+index.html
+README.md
 ```
 
-You should then be able to run
+Once you've tested that your connection works, you can read and write files; see [using the network connection](/cli/network.html#using-the-network-connection-in-origami-commands).
+
+## Create an npm command to publish your site
+
+The final step is to add a `publish` command to the `scripts` portion of your `package.json`:
+
+```json
+  "scripts": {
+    "publish": "ori publish src/site.ori, netlify.ori"
+  }
+```
+
+This example `publish` command assumes your site is defined in `src/site.ori`; update that with the path of the top-level Origami file that defines your site.
+
+With that, if you run:
 
 ```console
 $ npm run publish
 ```
 
-to publish your site. This will:
+the `publish` process will:
 
-1. Compare the site resources defined in `src/site.ori` with the resources currently on Netlify.
+1. Compare your local site resources with the resources currently on Netlify.
 1. Upload any files that have changed.
-
-If the process completes successfully, you’ll see one of two things:
-
-- A count of how many files were uploaded.
-- Or a statement that the site is up to date. This message is intentionally ambiguous: it means that either nothing changed in the site, or that your `site.ori` was the same as an earlier state. In the latter case, Netlify will revert your site to that earlier state without the need for any uploads.

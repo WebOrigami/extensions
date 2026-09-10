@@ -1,8 +1,16 @@
-This package provides functions for treating a [Dropbox](https://www.dropbox.com) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface).
+This package provides functions for treating a [Dropbox](https://www.dropbox.com) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface). You can represent your Dropbox folder as a [network host connection](https://weborigami.org/cli/network.html) so that you can read and write files directly to it.
+
+## Install the extension
+
+In the command line, install the extension in your project with:
+
+```console
+$ npm install @weborigami/dropbox
+```
 
 ## Obtaining Dropbox credentials
 
-This extension requires an API key from Dropbox. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a little maze of twisting passages, all different.
+This extension requires an API key from Dropbox. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a little maze of twisting passages.
 
 As of June 2024, the process to obtain a key is roughly:
 
@@ -54,3 +62,39 @@ curl https://api.dropbox.com/oauth2/token \
 
 14. Copy the `refresh_token` value from that result and paste it into `refresh_token` field in the `creds.json` file.
 15. Add the `creds.json` file to `.gitignore`. _Don't check credential files into source control!_
+
+## Create a file to represent the network host connection
+
+Create a file called `dropbox.ori` that will represent your authenticated access to Dropbox. Paste in the following:
+
+```
+package:@weborigami/dropbox(creds.json)
+```
+
+By default this will represent your _entire_ Dropbox account. If you only want to point to a specific folder, add a `path` option to `creds.json`.
+
+```json
+{
+  "app_key": "<app key goes here>",
+  "app_secret": "<app secret goes here>",
+  "path": "<path goes here>",
+  "refresh_token": "<refresh token goes here>"
+}
+```
+
+The path should be a string indicating a Dropbox folder, e.g., `path/to/folder`.
+
+## Test your connection
+
+After creating a file like `dropbox.ori` to represent your Dropbox account, you can test it by using [`Tree.keys`](https://weborigami.org/builtins/tree/keys.html) to list out the top level files and subfolders:
+
+```console
+$ ori keys dropbox.ori
+assets/
+posts/
+feed.json
+index.html
+README.md
+```
+
+Once you've tested that your connection works, you can read and write files; see [using the network connection](/cli/network.html#using-the-network-connection-in-origami-commands).

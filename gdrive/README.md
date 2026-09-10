@@ -1,10 +1,16 @@
-This package provides functions for treating a [Google Drive](https://www.google.com/drive/) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface).
+This package provides functions for treating a [Google Drive](https://www.google.com/drive/) folder as an [asynchronous map-based tree](https://weborigami.org/async-tree/interface). You can represent your Dropbox folder as a [network host connection](https://weborigami.org/cli/network.html) so that you can read and write files directly to it.
 
-It also allows you to read a [Google Sheets](https://www.google.com/sheets/about/) spreadsheet range or [Google Docs](https://www.google.com/docs/about/) document as plain JSON.
+## Install the extension
+
+In the command line, install the extension in your project with:
+
+```console
+$ npm install @weborigami/gdrive
+```
 
 ## Obtaining Google API credentials
 
-This extension requires an API key from Google. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a maze of twisty little passages, all alike.
+This extension requires an API key from Google. Like most cloud platforms, gaining programmatic access is ridiculously complicated and requires you to navigate a little maze of twisty passages.
 
 As of March 2024, the process to obtain a key is roughly:
 
@@ -27,27 +33,32 @@ As of March 2024, the process to obtain a key is roughly:
 1. This will download a .json file to your computer; move that file into your project and rename it `creds.json`.
 1. It's important to _not_ check this file into source control. E.g., add that to `.gitignore`.
 
-## Usage
+## Share a folder in Google Drive
 
-1. Use npm to install the main `@weborigami/origami` package and this `@weborigami/gdrive` extension.
-1. Obtain Google API credentials (above) and save the credentials as a file `creds.json`.
-1. Create a folder in Google Drive and "Share" it so that anyone with the link can view it. Alternatively, you can add the service account's email address (mentioned above) to the list of users that can access the folder. If you want to be able to write files to the folder, give the service account write access.
-1. Identify the ID of that folder. When you open the folder in the browser, the URL will look like `https://drive.google.com/drive/u/0/folders/<id>`, where the `<id>` is a string of letters and numbers.
-1. Create a file called `test.ori` that will represent your authenticated access to that folder. Inside the file, paste this line:
+Once you've created the `creds.json` file, you will need to share a Google Drive folder with the "service account" you created.
+
+1. Pick a folder in Google Drive and "Share" it. Either a) share it so that anyone with the link can view it, or b) add the service account's email address (mentioned above) to the list of users that can access the folder. If you want to be able to write files to the folder, give the service account write access.
+1. Identify the ID of that folder. When you open the folder in the browser, the URL will look like `https://drive.google.com/drive/u/0/folders/<folderId>`, where the `<folderId>` is a string of letters and numbers.
+
+## Create a file to represent the network host connection
+
+Create a file called `gdrive.ori` that will represent your authenticated access to that folder. Inside the file, paste this line and insert your folder ID:
 
 ```
-package:@weborigami/gdrive/auth(creds.json)/<id goes here>
+package:@weborigami/gdrive(creds.json)/<folderId goes here>
 ```
 
-You can then use the [Origami CLI](https://weborigami.org/cli) to get a list of the files in the Google Drive folder:
+## Test your connection
+
+After creating a file like `gdrive.ori` to represent your Google Drive folder, you can test it by using [`Tree.keys`](https://weborigami.org/builtins/tree/keys.html) to list out the top level files and subfolders:
 
 ```console
-$ ori keys test.ori
-... list of file names in the Google Drive folder...
+$ ori keys gdrive.ori
+assets/
+posts/
+feed.json
+index.html
+README.md
 ```
 
-Or copy the Google Drive folder to a local folder called `snapshot`:
-
-```console
-$ ori copy test.ori, files:snapshot
-```
+Once you've tested that your connection works, you can read and write files; see [using the network connection](/cli/network.html#using-the-network-connection-in-origami-commands).
