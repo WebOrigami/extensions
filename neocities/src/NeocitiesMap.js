@@ -236,7 +236,12 @@ export default class NeocitiesMap extends AsyncMap {
     const flat = new SyncMap(filtered);
 
     const inflated = await Tree.inflatePaths(flat);
-    return inflated;
+
+    // If we have a non-empty path, traverse to that point in the manifest
+    const result = this.path
+      ? await Tree.traversePath(inflated, this.path)
+      : inflated;
+    return result;
   }
 
   async set(key, value) {
