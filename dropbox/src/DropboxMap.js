@@ -1,8 +1,10 @@
 import {
   AsyncMap,
+  handleDotKey,
   isUnpackable,
   naturalOrder,
   pack,
+  resolveChildPath,
   setParent,
   trailingSlash,
   Tree,
@@ -76,7 +78,7 @@ export default class DropboxMap extends AsyncMap {
    */
   async child(key) {
     const normalizedKey = trailingSlash.remove(key);
-    const path = `${this.path}${normalizedKey}`;
+    const childPath = resolveChildPath(this.path, normalizedKey);
 
     const items = await this.getItems();
     const item =
@@ -99,7 +101,7 @@ export default class DropboxMap extends AsyncMap {
             Authorization: `Bearer ${this.accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ path }),
+          body: JSON.stringify({ path: childPath }),
         },
       );
 
@@ -115,7 +117,7 @@ export default class DropboxMap extends AsyncMap {
     }
 
     const subtree = Reflect.construct(this.constructor, [
-      { accessToken: this.accessToken, path },
+      { accessToken: this.accessToken, path: childPath },
     ]);
     setParent(subtree, this);
     return subtree;
@@ -125,7 +127,7 @@ export default class DropboxMap extends AsyncMap {
     // We use a trailing slash on our folder paths, but Dropbox doesn't want
     // them in a delete call.
     const normalized = trailingSlash.remove(key);
-    const path = `${this.path}${normalized}`;
+    const childPath = resolveChildPath(this.path, normalized);
     const response = await fetchWithBackoff(
       "https://api.dropboxapi.com/2/files/delete_v2",
       {
@@ -134,7 +136,7 @@ export default class DropboxMap extends AsyncMap {
           Authorization: `Bearer ${this.accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ path }),
+        body: JSON.stringify({ path: childPath }),
       },
     );
 
@@ -158,18 +160,18 @@ export default class DropboxMap extends AsyncMap {
   }
 
   async get(key) {
-    if (key == null) {
-      // Reject nullish key.
-      throw new ReferenceError(
-        `${this.constructor.name}: Cannot get a null or undefined key.`,
-      );
+    let value = handleDotKey(this, key);
+    if (value) {
+      return value;
     }
+
+    const valuePath = resolveChildPath(this.path, key);
 
     // A key with a trailing slash is for a folder; return a subtree without
     // making a network request.
     if (trailingSlash.has(key)) {
       const subtree = Reflect.construct(this.constructor, [
-        { accessToken: this.accessToken, path: this.path + key },
+        { accessToken: this.accessToken, path: valuePath },
       ]);
       subtree.parent = this;
       return subtree;
@@ -188,11 +190,11 @@ export default class DropboxMap extends AsyncMap {
       }
     }
 
-    const path = item.path_display;
+    const itemPath = item.path_display;
     if (item.tag === "folder") {
       // Return a subtree for the indicated folder.
       const subtree = Reflect.construct(this.constructor, [
-        { accessToken: this.accessToken, path },
+        { accessToken: this.accessToken, path: itemPath },
       ]);
       subtree.parent = this;
       return subtree;
@@ -205,7 +207,7 @@ export default class DropboxMap extends AsyncMap {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
-          "Dropbox-API-Arg": JSON.stringify({ path }),
+          "Dropbox-API-Arg": JSON.stringify({ path: itemPath }),
         },
       },
     );
@@ -215,7 +217,7 @@ export default class DropboxMap extends AsyncMap {
       );
     }
 
-    const value = response.arrayBuffer();
+    value = response.arrayBuffer();
     setParent(value, this);
     return value;
   }
@@ -239,7 +241,7 @@ export default class DropboxMap extends AsyncMap {
   [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
-    const path = `${this.path}${key}`;
+    const childPath = resolveChildPath(this.path, key);
     const packed = pack(value);
     const response = await fetchWithBackoff(
       "https://content.dropboxapi.com/2/files/upload",
@@ -249,7 +251,7 @@ export default class DropboxMap extends AsyncMap {
           Authorization: `Bearer ${this.accessToken}`,
           "Content-Type": "application/octet-stream",
           "Dropbox-API-Arg": JSON.stringify({
-            path,
+            path: childPath,
             mode: "overwrite",
           }),
         },

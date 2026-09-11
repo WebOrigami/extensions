@@ -1,6 +1,8 @@
 import {
   AsyncMap,
+  handleDotKey,
   naturalOrder,
+  resolveChildPath,
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
@@ -39,10 +41,12 @@ export default class GoogleDriveMap extends AsyncMap {
 
   // Return the (possibly new) subdirectory with the given key.
   async child(key) {
+    resolveChildPath(this.folderId, key); // Validate child path
+
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
-    const item = items.get(normalized);
 
+    const item = items.get(normalized);
     let childId;
     if (item && item.mimeType === "application/vnd.google-apps.folder") {
       // Folder already exists
@@ -65,8 +69,11 @@ export default class GoogleDriveMap extends AsyncMap {
   }
 
   async delete(key) {
+    resolveChildPath(this.folderId, key); // Validate child path
+
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
+
     const item = items.get(normalized);
     if (!item) {
       return false;
@@ -78,12 +85,12 @@ export default class GoogleDriveMap extends AsyncMap {
   }
 
   async get(key) {
-    if (key == null) {
-      // Reject nullish key.
-      throw new ReferenceError(
-        `${this.constructor.name}: Cannot get a null or undefined key.`,
-      );
+    let value = handleDotKey(this, key);
+    if (value) {
+      return value;
     }
+
+    resolveChildPath(this.folderId, key); // Validate child path
 
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
@@ -99,7 +106,7 @@ export default class GoogleDriveMap extends AsyncMap {
         Reflect.construct(this.constructor, [auth, id]),
     };
     const loader = googleFileTypes[item.mimeType] || getFile;
-    const value = await loader(this.auth, item.id);
+    value = await loader(this.auth, item.id);
     setParent(value, this);
     return value;
   }
@@ -152,9 +159,12 @@ export default class GoogleDriveMap extends AsyncMap {
   [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
+    resolveChildPath(this.folderId, key); // Validate child path
+
     // Does the file already exist?
     let items = await this.getItems();
     const normalized = trailingSlash.remove(key);
+
     const item = items.get(normalized);
 
     if (item && item.mimeType !== "application/vnd.google-apps.folder") {

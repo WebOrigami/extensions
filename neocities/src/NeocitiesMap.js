@@ -216,7 +216,9 @@ export default class NeocitiesMap extends AsyncMap {
   }
 
   async manifest() {
-    const pathArg = this.path ? encodeURIComponent(this.path) : "/";
+    const pathArg = this.path
+      ? encodeURIComponent(trailingSlash.remove(this.path))
+      : "/";
     const url = `https://neocities.org/api/list?path=${pathArg}`;
     const response = await fetchWithBackoff(url, {
       headers: {
