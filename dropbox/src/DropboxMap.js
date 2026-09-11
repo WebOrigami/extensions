@@ -47,12 +47,12 @@ export default class DropboxMap extends AsyncMap {
     const base = this.path === "" ? "/" : this.path;
     const deflated = await Tree.deflatePaths(tree, { base });
     const uploadFilter = await Tree.filter(deflated, Boolean);
-    const uploads = await Tree.resolve(uploadFilter);
+    const uploads = await Tree.awaitValues(uploadFilter);
     const deleteFilter = await Tree.filter(
       deflated,
       (value) => value == undefined,
     );
-    const deletions = await Tree.resolve(deleteFilter);
+    const deletions = await Tree.awaitValues(deleteFilter);
 
     if (uploads.size > 0) {
       await uploadFiles(uploads, this.accessToken);

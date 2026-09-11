@@ -6,6 +6,7 @@ import {
   trailingSlash,
   Tree,
 } from "@weborigami/async-tree";
+import { symbols } from "@weborigami/language";
 import { fetchWithBackoff } from "@weborigami/origami";
 import mapLimit from "./mapLimit.js";
 
@@ -103,6 +104,8 @@ export default class NetlifyMap extends AsyncMap {
       : inflated;
     return result;
   }
+
+  [symbols.noCacheSymbol] = true;
 
   async replaceWith(source) {
     if (this.path) {

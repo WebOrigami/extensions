@@ -7,6 +7,7 @@ import {
   trailingSlash,
   Tree,
 } from "@weborigami/async-tree";
+import { symbols } from "@weborigami/language";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
@@ -29,12 +30,12 @@ export default class NeocitiesMap extends AsyncMap {
 
     const deflated = await Tree.deflatePaths(tree);
     const uploadFilter = await Tree.filter(deflated, Boolean);
-    const uploads = await Tree.resolve(uploadFilter);
+    const uploads = await Tree.awaitValues(uploadFilter);
     const deleteFilter = await Tree.filter(
       deflated,
       (value) => value == undefined,
     );
-    const deletions = await Tree.resolve(deleteFilter);
+    const deletions = await Tree.awaitValues(deleteFilter);
 
     if (uploads.size > 0) {
       await uploadFiles(uploads, this.token);
@@ -243,6 +244,8 @@ export default class NeocitiesMap extends AsyncMap {
       : inflated;
     return result;
   }
+
+  [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
     const map = new SyncMap([[key, value]]);

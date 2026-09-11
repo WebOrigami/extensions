@@ -4,6 +4,7 @@ import {
   setParent,
   trailingSlash,
 } from "@weborigami/async-tree";
+import { symbols } from "@weborigami/language";
 import { google } from "googleapis";
 import { Readable } from "node:stream";
 import gdoc from "./gdoc.js";
@@ -147,6 +148,8 @@ export default class GoogleDriveMap extends AsyncMap {
     keys.sort(naturalOrder);
     yield* keys;
   }
+
+  [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
     // Does the file already exist?
