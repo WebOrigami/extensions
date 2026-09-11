@@ -14,8 +14,9 @@ import { fetchWithBackoff } from "@weborigami/origami";
  * A Dropbox folder as an async map.
  */
 export default class DropboxMap extends AsyncMap {
-  constructor(accessToken, path) {
+  constructor(options) {
     super();
+    let { accessToken, path } = options;
     this.accessToken = accessToken;
     if (path === undefined || path === "/") {
       // Dropbox wants the root path as the empty string.
@@ -114,8 +115,7 @@ export default class DropboxMap extends AsyncMap {
     }
 
     const subtree = Reflect.construct(this.constructor, [
-      this.accessToken,
-      path,
+      { accessToken: this.accessToken, path },
     ]);
     setParent(subtree, this);
     return subtree;
@@ -169,8 +169,7 @@ export default class DropboxMap extends AsyncMap {
     // making a network request.
     if (trailingSlash.has(key)) {
       const subtree = Reflect.construct(this.constructor, [
-        this.accessToken,
-        this.path + key,
+        { accessToken: this.accessToken, path: this.path + key },
       ]);
       subtree.parent = this;
       return subtree;
@@ -193,10 +192,9 @@ export default class DropboxMap extends AsyncMap {
     if (item.tag === "folder") {
       // Return a subtree for the indicated folder.
       const subtree = Reflect.construct(this.constructor, [
-        this.accessToken,
-        path,
+        { accessToken: this.accessToken, path },
       ]);
-      setParent(subtree, this);
+      subtree.parent = this;
       return subtree;
     }
 

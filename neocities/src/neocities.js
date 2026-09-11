@@ -10,7 +10,8 @@ import NeocitiesMap from "./NeocitiesMap.js";
  * @returns {Promise<NeocitiesMap>}
  */
 export default async function neocities(options, state) {
-  let { token, url } = await args.options(options, "Neocities", {
+  let { token, url, path } = await args.options(options, "Neocities", {
+    path: { required: false },
     token: {},
     url: { required: false },
   });
@@ -20,7 +21,11 @@ export default async function neocities(options, state) {
     url = `https://${url}`;
   }
 
-  const tree = new (HandleExtensionsTransform(NeocitiesMap))({ token, url });
+  const tree = new (HandleExtensionsTransform(NeocitiesMap))({
+    token,
+    url,
+    path,
+  });
 
   // Set globals for extension handlers
   tree.globals = state?.globals || (await coreGlobals());

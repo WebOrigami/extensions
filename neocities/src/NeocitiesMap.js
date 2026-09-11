@@ -11,11 +11,11 @@ import { symbols } from "@weborigami/language";
 import { fetchWithBackoff } from "@weborigami/origami";
 
 export default class NeocitiesMap extends AsyncMap {
-  constructor(options, path = "") {
+  constructor(options) {
     super();
     this.token = options.token;
     this.url = options.url;
-    this.path = path ? trailingSlash.add(path) : "";
+    this.path = options.path ? trailingSlash.add(options.path) : "";
   }
 
   /**
@@ -88,10 +88,10 @@ export default class NeocitiesMap extends AsyncMap {
 
     result = Reflect.construct(this.constructor, [
       {
+        path: pathArg,
         token: this.token,
         url: this.url,
       },
-      pathArg,
     ]);
     result.parent = this;
     return result;
@@ -158,6 +158,7 @@ export default class NeocitiesMap extends AsyncMap {
       const directoryPath = trailingSlash.add(filePath);
       value = Reflect.construct(this.constructor, [
         {
+          path: directoryPath,
           token: this.token,
           url: this.url,
         },

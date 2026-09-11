@@ -23,7 +23,10 @@ export default async function dropbox(options, state) {
   );
 
   const accessToken = await getAccessToken(app_key, app_secret, refresh_token);
-  const tree = new (HandleExtensionsTransform(DropboxMap))(accessToken, path);
+  const tree = new (HandleExtensionsTransform(DropboxMap))({
+    accessToken,
+    path,
+  });
 
   // Set globals for extension handlers
   tree.globals = state?.globals || (await coreGlobals());
