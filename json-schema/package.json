@@ -4,8 +4,8 @@
   "type": "module",
   "main": "src/validator.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.6.0",
-    "ajv": "8.17.1"
+    "@weborigami/async-tree": "0.7.1",
+    "ajv": "8.20.0"
   },
   "scripts": {
     "test": "node --test --test-reporter=spec"
