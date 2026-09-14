@@ -41,7 +41,7 @@ export default class GoogleDriveMap extends AsyncMap {
 
   // Return the (possibly new) subdirectory with the given key.
   async child(key) {
-    resolveChildPath(this.folderId, key); // Validate child path
+    resolveChildPath.required(this.folderId, key); // Validate child path
 
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
@@ -69,7 +69,7 @@ export default class GoogleDriveMap extends AsyncMap {
   }
 
   async delete(key) {
-    resolveChildPath(this.folderId, key); // Validate child path
+    resolveChildPath.required(this.folderId, key); // Validate child path
 
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
@@ -90,7 +90,11 @@ export default class GoogleDriveMap extends AsyncMap {
       return value;
     }
 
-    resolveChildPath(this.folderId, key); // Validate child path
+    // Validate the child path, even though we won't use it directly.
+    const valuePath = resolveChildPath.optional(this.folderId, key);
+    if (valuePath === undefined) {
+      return undefined;
+    }
 
     const items = await this.getItems();
     const normalized = trailingSlash.remove(key);
@@ -159,7 +163,7 @@ export default class GoogleDriveMap extends AsyncMap {
   [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
-    resolveChildPath(this.folderId, key); // Validate child path
+    resolveChildPath.required(this.folderId, key); // Validate child path
 
     // Does the file already exist?
     let items = await this.getItems();

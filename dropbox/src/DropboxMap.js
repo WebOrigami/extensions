@@ -78,7 +78,7 @@ export default class DropboxMap extends AsyncMap {
    */
   async child(key) {
     const normalizedKey = trailingSlash.remove(key);
-    const childPath = resolveChildPath(this.path, normalizedKey);
+    const childPath = resolveChildPath.required(this.path, normalizedKey);
 
     const items = await this.getItems();
     const item =
@@ -127,7 +127,7 @@ export default class DropboxMap extends AsyncMap {
     // We use a trailing slash on our folder paths, but Dropbox doesn't want
     // them in a delete call.
     const normalized = trailingSlash.remove(key);
-    const childPath = resolveChildPath(this.path, normalized);
+    const childPath = resolveChildPath.required(this.path, normalized);
     const response = await fetchWithBackoff(
       "https://api.dropboxapi.com/2/files/delete_v2",
       {
@@ -165,7 +165,10 @@ export default class DropboxMap extends AsyncMap {
       return value;
     }
 
-    const valuePath = resolveChildPath(this.path, key);
+    const valuePath = resolveChildPath.optional(this.path, key);
+    if (valuePath === undefined) {
+      return undefined;
+    }
 
     // A key with a trailing slash is for a folder; return a subtree without
     // making a network request.
@@ -241,7 +244,7 @@ export default class DropboxMap extends AsyncMap {
   [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
-    const childPath = resolveChildPath(this.path, key);
+    const childPath = resolveChildPath.required(this.path, key);
     const packed = pack(value);
     const response = await fetchWithBackoff(
       "https://content.dropboxapi.com/2/files/upload",
