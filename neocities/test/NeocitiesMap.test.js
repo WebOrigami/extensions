@@ -10,7 +10,10 @@ const parent = new FileMap(parentUrl);
 const tokenPath = new URL("../token.txt", import.meta.url);
 const tokenBuffer = await fs.readFile(tokenPath);
 const token = new TextDecoder().decode(tokenBuffer).trim();
-const fixture = await neocities({ token }, { parent });
+const fixture = await neocities(
+  { token, url: "miksovsky.neocities.org" },
+  { parent },
+);
 
 describe("NeocitiesMap", () => {
   test("apply method can upload and delete files", async () => {

@@ -2,6 +2,7 @@ import {
   AsyncMap,
   naturalOrder,
   pack,
+  resolveChildPath,
   setParent,
   trailingSlash,
   Tree,
@@ -30,21 +31,21 @@ export default class NetlifyMap extends AsyncMap {
   }
 
   async get(key) {
-    const base = new URL(this.path, this.domain);
-    const url = new URL(key, base);
+    const childPath = resolveChildPath.required(this.path, key);
+    const url = new URL(childPath, this.domain);
 
     // A key with a trailing slash is for a folder; return a subtree without
     // making a network request.
     if (trailingSlash.has(key)) {
       const value = Reflect.construct(this.constructor, [
         {
-          path: url.pathname.slice(1), // Remove leading slash
+          path: childPath,
           projectId: this.projectId,
           projectName: this.projectName,
           token: this.token,
         },
       ]);
-      setParent(value, this);
+      value.parent = this;
       return value;
     }
 
@@ -56,7 +57,13 @@ export default class NetlifyMap extends AsyncMap {
       return undefined;
     }
 
-    return response.ok ? await response.arrayBuffer() : undefined;
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const result = await response.arrayBuffer();
+    setParent(result, this);
+    return result;
   }
 
   async *keys() {

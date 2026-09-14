@@ -2,6 +2,7 @@ import {
   AsyncMap,
   isUnpackable,
   pack,
+  resolveChildPath,
   setParent,
   SyncMap,
   trailingSlash,
@@ -67,10 +68,10 @@ export default class NeocitiesMap extends AsyncMap {
     }
 
     // Create a new directory
-    const pathArg = this.filePathForKey(normalized);
+    const childPath = resolveChildPath.required(this.path, normalized);
     const url = `https://neocities.org/api/create_directory`;
     const response = await fetchWithBackoff(url, {
-      body: new URLSearchParams({ path: pathArg }),
+      body: new URLSearchParams({ path: childPath }),
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
@@ -82,13 +83,13 @@ export default class NeocitiesMap extends AsyncMap {
     // without a trailing slash.
     if (!response.ok && response.status !== 400) {
       throw new Error(
-        `Failed to create directory ${pathArg}: ${response.statusText}`,
+        `Failed to create directory ${childPath}: ${response.statusText}`,
       );
     }
 
     result = Reflect.construct(this.constructor, [
       {
-        path: pathArg,
+        path: childPath,
         token: this.token,
         url: this.url,
       },
@@ -98,33 +99,26 @@ export default class NeocitiesMap extends AsyncMap {
   }
 
   async delete(key) {
-    const filePath = this.filePathForKey(key);
-    const deletions = new Map([[filePath, undefined]]);
+    const childPath = resolveChildPath.required(this.path, key);
+    const deletions = new Map([[childPath, undefined]]);
     await deleteFiles(deletions, this.token);
     return this;
   }
 
-  async fileEntryForKey(key) {
-    const filePath = this.filePathForKey(key);
-    const files = await this.getFiles();
-    return files[filePath];
-  }
-
-  filePathForKey(key) {
-    const normalizedKey = trailingSlash.remove(key);
-    return this.path ? `${this.path}${normalizedKey}` : normalizedKey;
-  }
-
   async get(key) {
-    // Do we know the key is for a directory?
-    let isDirectory = trailingSlash.has(key);
-    const filePath = this.filePathForKey(key);
+    const childPath = resolveChildPath.optional(this.path, key);
+    if (childPath === undefined) {
+      return undefined;
+    }
 
     let response;
+
+    // Do we know the key is for a directory?
+    let isDirectory = trailingSlash.has(key);
     if (!isDirectory) {
       // Might be a file or a directory
       this.url ??= await this.getSiteUrl();
-      const fileUrl = `${this.url}/${filePath}`;
+      const fileUrl = `${this.url}/${childPath}`;
 
       response = await fetchWithBackoff(fileUrl, {
         headers: {
@@ -155,14 +149,13 @@ export default class NeocitiesMap extends AsyncMap {
 
     let value;
     if (isDirectory) {
-      const directoryPath = trailingSlash.add(filePath);
       value = Reflect.construct(this.constructor, [
         {
-          path: directoryPath,
+          path: childPath,
           token: this.token,
           url: this.url,
         },
-        directoryPath,
+        childPath,
       ]);
     } else if (!response.ok) {
       // Not found or an error
@@ -251,7 +244,8 @@ export default class NeocitiesMap extends AsyncMap {
   [symbols.noCacheSymbol] = true;
 
   async set(key, value) {
-    const map = new SyncMap([[key, value]]);
+    const childPath = resolveChildPath.required(this.path, key);
+    const map = new SyncMap([[childPath, value]]);
     await uploadFiles(map, this.token);
     return this;
   }

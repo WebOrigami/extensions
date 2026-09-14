@@ -15,10 +15,18 @@ const fixture = await netlify({
 });
 
 describe("NetlifyMap", () => {
-  test("get", async () => {
-    const buffer = await fixture.get("index.html");
-    const text = new TextDecoder().decode(buffer);
-    assert(text.includes("<!DOCTYPE html>"));
+  describe("get", () => {
+    test("get", async () => {
+      const buffer = await fixture.get("index.html");
+      const text = new TextDecoder().decode(buffer);
+      assert(text.includes("<!DOCTYPE html>"));
+    });
+
+    test("get method with trailing slash returns a subdirectory", async () => {
+      const assets = await fixture.get("assets/");
+      const keys = await Tree.keys(assets);
+      assert(keys.includes("styles.css"));
+    });
   });
 
   test("keys", async () => {
