@@ -36,4 +36,3 @@ export default async function netlify(options, state) {
 
   return tree;
 }
-netlify.needsState = true;

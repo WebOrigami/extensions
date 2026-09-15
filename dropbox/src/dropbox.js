@@ -36,7 +36,6 @@ export default async function dropbox(options, state) {
 
   return tree;
 }
-dropbox.needsState = true;
 
 /**
  * Given Dropbox credentials, get an access token.

@@ -42,4 +42,3 @@ export default async function gdrive(options, state) {
     return tree;
   };
 }
-gdrive.needsState = true;

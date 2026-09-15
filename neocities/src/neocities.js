@@ -35,4 +35,3 @@ export default async function neocities(options, state) {
 
   return tree;
 }
-neocities.needsState = true;
