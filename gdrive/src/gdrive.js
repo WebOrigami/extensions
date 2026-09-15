@@ -1,5 +1,8 @@
 import { args, Tree } from "@weborigami/async-tree";
-import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
+import {
+  HandleExtensionsTransform,
+  initializeGlobalsFromContext,
+} from "@weborigami/language";
 import * as googleApis from "googleapis";
 import GoogleDriveMap from "./GoogleDriveMap.js";
 
@@ -26,7 +29,7 @@ export default async function gdrive(options, state) {
   });
 
   // Get globals for extension handlers
-  const globals = state?.globals || (await coreGlobals());
+  const globals = await initializeGlobalsFromContext();
 
   // We can't create a GoogleDriveMap without knowing what folder ID the user
   // wants, so we return a function that takes the folder ID as an argument.

@@ -1,5 +1,8 @@
 import { args } from "@weborigami/async-tree";
-import { coreGlobals, HandleExtensionsTransform } from "@weborigami/language";
+import {
+  HandleExtensionsTransform,
+  initializeGlobalsFromContext,
+} from "@weborigami/language";
 import NeocitiesMap from "./NeocitiesMap.js";
 
 /**
@@ -28,7 +31,7 @@ export default async function neocities(options, state) {
   });
 
   // Set globals for extension handlers
-  tree.globals = state?.globals || (await coreGlobals());
+  tree.globals = await initializeGlobalsFromContext();
 
   return tree;
 }
