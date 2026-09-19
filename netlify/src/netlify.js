@@ -9,11 +9,10 @@ import NetlifyMap from "./NetlifyMap.js";
  * Return an AsyncMap for the files in a Netlify project.
  *
  * @param {{ projectId: string, projectName: string, token: string }} options
- * @param {*} state
  * @returns {Promise<NetlifyMap>}
  */
-export default async function netlify(options, state) {
-  let { projectId, projectName, token } = await args.options(
+export default async function netlify(options) {
+  let { projectId, projectName, token } = await args.dictionary(
     options,
     "Netlify",
     {

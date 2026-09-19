@@ -16,10 +16,9 @@ const scopes = [
  * Return an AsyncMap for files on Google Drive.
  *
  * @param {*} options
- * @param {*} state
  * @returns {Promise<GoogleDriveMap>}
  */
-export default async function gdrive(options, state) {
+export default async function gdrive(options) {
   const optionsMap = await args.map(options, "gdrive");
   const optionsPlain = await Tree.plain(optionsMap);
 

@@ -10,11 +10,10 @@ import DropboxMap from "./DropboxMap.js";
  *
  * @param {{ app_key: string, app_secret: string, refresh_token: string }}
  * options
- * @param {*} state
  * @returns {Promise<DropboxMap>}
  */
-export default async function dropbox(options, state) {
-  const { app_key, app_secret, refresh_token, path } = await args.options(
+export default async function dropbox(options) {
+  const { app_key, app_secret, refresh_token, path } = await args.dictionary(
     options,
     "Dropbox",
     {
