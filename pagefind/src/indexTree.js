@@ -37,23 +37,6 @@ export default async function indexTree(treelike, basePath = "", config = {}) {
   return inflated;
 }
 
-// Add a single value to a nested object based on an array of keys.
-function addValueToObject(object, keys, value) {
-  for (let i = 0, current = object; i < keys.length; i++) {
-    const key = keys[i];
-    if (i === keys.length - 1) {
-      // Write out value
-      current[key] = value;
-    } else {
-      // Traverse further
-      if (!current[key]) {
-        current[key] = {};
-      }
-      current = current[key];
-    }
-  }
-}
-
 // Add the complete HTML content in a tree to a Pagefind index.
 async function addTreeToIndex(treelike, options) {
   const tree = Tree.from(treelike);
