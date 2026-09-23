@@ -18,7 +18,7 @@ export default async function netlify(options) {
     {
       projectId: {},
       projectName: {},
-      token: {},
+      token: { type: "stringlike" },
     },
   );
 
@@ -35,3 +35,4 @@ export default async function netlify(options) {
 
   return tree;
 }
+netlify.unpackArgs = true;
