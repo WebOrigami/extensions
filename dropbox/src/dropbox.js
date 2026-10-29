@@ -35,6 +35,7 @@ export default async function dropbox(options) {
 
   return tree;
 }
+dropbox.unpackArgs = true;
 
 /**
  * Given Dropbox credentials, get an access token.

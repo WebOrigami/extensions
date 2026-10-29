@@ -41,3 +41,4 @@ export default async function gdrive(options) {
     return tree;
   };
 }
+gdrive.unpackArgs = true;

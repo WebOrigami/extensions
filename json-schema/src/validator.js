@@ -27,8 +27,8 @@ export default async function validator(schemaTreelike, options) {
         allErrors: true,
         loadSchema,
       },
-      options
-    )
+      options,
+    ),
   );
   const validate = await ajv.compileAsync(schema);
 
@@ -37,7 +37,7 @@ export default async function validator(schemaTreelike, options) {
     if (Tree.isMaplike(input)) {
       // If the input is a tree, unpack any packed values
       const unpacked = await Tree.map(input, async (item) =>
-        isUnpackable(item) ? await item.unpack() : item
+        isUnpackable(item) ? await item.unpack() : item,
       );
       // Resolve to an in-memory object
       data = await Tree.plain(unpacked);
@@ -78,6 +78,7 @@ export default async function validator(schemaTreelike, options) {
   };
 }
 validator.containerAsTarget = true;
+validator.unpackArgs = true;
 
 function formatInstance(object) {
   let text =

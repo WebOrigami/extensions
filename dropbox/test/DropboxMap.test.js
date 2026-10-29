@@ -76,8 +76,8 @@ describe("DropboxMap", () => {
       const text = toString(buffer);
       assert(text.includes("#pondlife"));
       // Can unpack value
-      const value = await Tree.traverse(buffer, "title");
-      assert.equal(value, "#pondlife");
+      const unpacked = await buffer.unpack();
+      assert.equal(unpacked.title, "#pondlife");
     });
 
     test("get method with trailing slash returns a subdirectory", async () => {

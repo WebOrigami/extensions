@@ -34,3 +34,4 @@ export default async function neocities(options) {
 
   return tree;
 }
+neocities.unpackArgs = true;

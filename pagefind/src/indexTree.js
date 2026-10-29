@@ -36,6 +36,7 @@ export default async function indexTree(treelike, basePath = "", config = {}) {
   const inflated = await Tree.inflatePaths(sorted);
   return inflated;
 }
+indexTree.unpackArgs = true;
 
 // Add the complete HTML content in a tree to a Pagefind index.
 async function addTreeToIndex(treelike, options) {

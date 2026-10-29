@@ -12,8 +12,8 @@ export default async function tsc(treelike, options) {
       config === undefined
         ? {}
         : typeof config === "string"
-        ? JSON.parse(config)
-        : await Tree.plain(config);
+          ? JSON.parse(config)
+          : await Tree.plain(config);
   } else if (isUnpackable(options)) {
     // Options are packed as a file Buffer or similar structure; unpack and
     // parse as TypeScript compiler options.
@@ -45,3 +45,4 @@ export default async function tsc(treelike, options) {
   const dist = await Tree.traversePath(treeHost, outDir);
   return dist;
 }
+tsc.unpackArgs = true;
