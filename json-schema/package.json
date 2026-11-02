@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/json-schema",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "type": "module",
   "main": "src/validator.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.7.2",
+    "@weborigami/async-tree": "0.7.5",
     "ajv": "8.20.0"
   },
   "scripts": {
