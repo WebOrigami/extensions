@@ -1,14 +1,14 @@
 {
   "name": "@weborigami/neocities",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "type": "module",
   "main": "src/neocities.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.7.2",
-    "@weborigami/language": "0.7.2"
+    "@weborigami/async-tree": "0.7.5",
+    "@weborigami/language": "0.7.5"
   },
   "devDependencies": {
-    "@weborigami/origami": "0.7.2"
+    "@weborigami/origami": "0.7.5"
   },
   "scripts": {
     "publish": "ori publish sandbox/pondlife.ori, sandbox/neocities.ori",
