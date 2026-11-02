@@ -1,9 +1,6 @@
 import { toString, trailingSlash, Tree } from "@weborigami/async-tree";
 import * as pagefind from "pagefind";
 
-const textDecoder = new TextDecoder();
-const TypedArray = Object.getPrototypeOf(Uint8Array);
-
 /**
  * Given a tree of HTML content, index that content with Pagefind and return a
  * new tree containing the index files.
