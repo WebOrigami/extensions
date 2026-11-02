@@ -1,14 +1,14 @@
 {
   "name": "@weborigami/netlify",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "type": "module",
   "main": "src/netlify.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.7.2",
-    "@weborigami/origami": "0.7.2"
+    "@weborigami/async-tree": "0.7.5",
+    "@weborigami/origami": "0.7.5"
   },
   "devDependencies": {
-    "@weborigami/origami": "0.7.2"
+    "@weborigami/origami": "0.7.5"
   },
   "scripts": {
     "deploy": "ori publish.ori",
