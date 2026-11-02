@@ -1,10 +1,10 @@
 {
   "name": "@weborigami/ts",
-  "version": "0.0.15",
+  "version": "0.0.21",
   "type": "module",
   "main": "main.js",
   "dependencies": {
-    "@weborigami/async-tree": "0.6.0",
+    "@weborigami/async-tree": "0.7.5",
     "typescript": "5.9.3"
   },
   "devDependencies": {
